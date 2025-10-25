@@ -1,7 +1,9 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-
+import { AppHeader } from "@/components/AppHeader";
+import { Container } from "@/components/ui/container";
+import { RouterProvider } from "@/providers/router-provider";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -36,7 +38,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <RouterProvider>
+          <AppHeader />
+          <Container className="py-6 ">{children}</Container>
+        </RouterProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",
