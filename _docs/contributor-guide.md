@@ -24,7 +24,7 @@
 
 ## Coding Style & Naming
 - TypeScript, 2-space indentation. Prefer functional React components.
-- Filenames: routes lowercase with dashes or `index.tsx`; colocated components may use PascalCase.
+- Filenames: routes lowercase with dashes or `index.tsx`; co-located components may use PascalCase.
 - Exports: components `PascalCase`; functions/vars `camelCase`.
 - UI: Follow Intent UI + React ARIA idioms (roles/labels, keyboard interactions, focus management).
 
@@ -48,8 +48,8 @@
 - Source of truth: @_docs/spec.md .
 - Update the relevant sections when behavior changes, and add a short “Spec changes” memo (date/summary/impact) with before/after Typst examples when relevant.
 - References for Typst output:
-  - Typst Tables Guide: https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md
-  - Typst Table Reference: https://typst.app/docs/reference/model/table/
+  - Typst Tables Guide: <https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md>
+  - Typst Table Reference: <https://typst.app/docs/reference/model/table/>
 
 ## References
 - Intent UI guidance for LLMs and component usage: https://intentui.com/llms.txt

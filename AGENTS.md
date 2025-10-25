@@ -36,8 +36,8 @@ More: @_docs/contributor-guide.md . For Intent UI usage guidance, see https://in
 - @_docs/spec.md is the source of truth. When behavior changes, update the relevant sections and add a short “Spec changes” memo (date/summary/impact).
 - Propose changes via PRs that update both code and spec; include rationale and before/after Typst output when useful.
 - References for Typst output:
-  - Typst Tables Guide: https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md
-  - Typst Table Reference: https://typst.app/docs/reference/model/table/
+  - Typst Tables Guide: <https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md>
+  - Typst Table Reference: <https://typst.app/docs/reference/model/table/>
 
 ## Workflow
 1. Understand context
