@@ -30,5 +30,3 @@
 - [ ] `bun run check` を通過
 - [ ] `bun run test` を通過（必要なテストを追加）
 - [ ] `bun run build`（ビルド/ランタイムに影響がある場合）
-- [ ] `bunx lefthook run pre-commit`（任意）
-- [ ] 変更は小さくフォーカスされている
