@@ -68,6 +68,7 @@ More: @_docs/contributor-guide.md . For Intent UI usage guidance, see https://in
 
 ## Notes for Contributors
 - Do not edit `src/routeTree.gen.ts`; regenerate via the dev build when routes change.
+- Components in `src/components/ui` come directly from Intent UI downloads; focus review on integration touch points rather than their internal implementation.
 
 ## Work Logs
 - Location: @_docs/log/ with file name `YYYYMMDD_<kebab-case-slug>.md` (date = start day). Example: `_docs/log/20251025_tsv-paste.md`.
