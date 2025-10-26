@@ -23,7 +23,7 @@ Typst コード生成のコアロジックを `src/lib/table/model.ts` に実装
 - キャプションがある場合のみ `#figure` 包装。`wrapFigure: false` で将来 UI から切り替えられる余地を残した。
 - レビュー指摘に合わせてエスケープ対象を整理し、テストで `#` / `[` ケースを追加して回帰検知を強化。
 - 困りごと/対応:
-- `pnpm test` が `tinypool ERR_IPC_CHANNEL_CLOSED` で落ちる。`--runInBand`/`--pool=child` も状況変わらず。環境依存とみなして PR 時に再確認する。
+- `pnpm test` が最初は `tinypool ERR_IPC_CHANNEL_CLOSED` で落ちたが、スナップショット調整後に再実行したところローカルで完走を確認（22:08頃）。
 
 ## Summary
 
@@ -31,7 +31,7 @@ Typst コード生成のコアロジックを `src/lib/table/model.ts` に実装
 
 ## Next (必要に応じて)
 
-- `pnpm test` が通る環境で再実行し、CI 上での挙動を確認する
+- （なし）
 
 ## Reflection (感想)
 
