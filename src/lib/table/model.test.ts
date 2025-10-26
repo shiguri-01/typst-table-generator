@@ -7,13 +7,13 @@ import {
   insertColumn,
   insertRow,
   normalizeTableModel,
+  patchCell,
   removeColumn,
   removeRow,
   setCaption,
   setHeaderRows,
   setStrokes,
   updateCell,
-  patchCell,
   updateColumnSpec,
   updateColumnStroke,
   updateRowStroke,
@@ -34,10 +34,7 @@ describe("table model helpers", () => {
 
   it("normalizes ragged rows and clamps header rows", () => {
     const model = createTableModel({
-      rows: [
-        [{ text: "A" }, { text: "B" }],
-        [{ text: "1" }],
-      ],
+      rows: [[{ text: "A" }, { text: "B" }], [{ text: "1" }]],
       headerRows: 5,
       columnSpecs: [{ width: "auto" }, { width: 24 }, { width: 12 }],
     });
@@ -49,11 +46,15 @@ describe("table model helpers", () => {
 
   it("updates a cell without mutating the original model", () => {
     const model = createEmptyTable(1, 2);
-    const updated = updateCell(model, { rowIndex: 0, columnIndex: 1 }, (cell) => ({
-      ...cell,
-      text: "value",
-      bold: true,
-    }));
+    const updated = updateCell(
+      model,
+      { rowIndex: 0, columnIndex: 1 },
+      (cell) => ({
+        ...cell,
+        text: "value",
+        bold: true,
+      }),
+    );
 
     expect(updated.rows[0][1]).toEqual({ text: "value", bold: true });
     expect(model.rows[0][1]).toEqual({ text: "" });
@@ -61,7 +62,11 @@ describe("table model helpers", () => {
 
   it("patches a cell using the helper shortcut", () => {
     const model = createEmptyTable(1, 1);
-    const updated = patchCell(model, { rowIndex: 0, columnIndex: 0 }, { italic: true });
+    const updated = patchCell(
+      model,
+      { rowIndex: 0, columnIndex: 0 },
+      { italic: true },
+    );
 
     expect(updated.rows[0][0]).toEqual({ text: "", italic: true });
   });
@@ -70,11 +75,17 @@ describe("table model helpers", () => {
     const model = createEmptyTable(2, 2, { headerRows: 2 });
     const withRow = insertRow(model, 1, [{ text: "X" }]);
 
-    expect(getTableDimensions(withRow)).toEqual({ rowCount: 3, columnCount: 2 });
+    expect(getTableDimensions(withRow)).toEqual({
+      rowCount: 3,
+      columnCount: 2,
+    });
     expect(withRow.rows[1][0]).toEqual({ text: "X" });
 
     const withoutRow = removeRow(withRow, 2);
-    expect(getTableDimensions(withoutRow)).toEqual({ rowCount: 2, columnCount: 2 });
+    expect(getTableDimensions(withoutRow)).toEqual({
+      rowCount: 2,
+      columnCount: 2,
+    });
     expect(withoutRow.headerRows).toBe(2);
   });
 
@@ -92,7 +103,10 @@ describe("table model helpers", () => {
     });
 
     const withColumn = insertColumn(model, 1);
-    expect(getTableDimensions(withColumn)).toEqual({ rowCount: 2, columnCount: 3 });
+    expect(getTableDimensions(withColumn)).toEqual({
+      rowCount: 2,
+      columnCount: 3,
+    });
     expect(withColumn.rows[0][1]).toEqual({ text: "" });
     expect(withColumn.columnSpecs?.length).toBe(3);
     expect(withColumn.strokes?.columns).toHaveLength(3);
@@ -120,7 +134,9 @@ describe("table model helpers", () => {
     const withRowStroke = updateRowStroke(model, 0, { bottom: 0.6 });
     expect(withRowStroke.strokes?.rows?.[0]).toEqual({ bottom: 0.6 });
 
-    const withColumnStroke = updateColumnStroke(withRowStroke, 1, { right: "none" });
+    const withColumnStroke = updateColumnStroke(withRowStroke, 1, {
+      right: "none",
+    });
     expect(withColumnStroke.strokes?.columns?.[1]).toEqual({ right: "none" });
 
     const cleared = setStrokes(withColumnStroke, undefined);
@@ -129,10 +145,7 @@ describe("table model helpers", () => {
 
   it("normalizes mismatched stroke arrays during explicit normalization", () => {
     const model = normalizeTableModel({
-      rows: [
-        [{ text: "A" }],
-        [{ text: "B" }],
-      ],
+      rows: [[{ text: "A" }], [{ text: "B" }]],
       strokes: {
         rows: [{ bottom: 0.4 }],
         columns: [{ right: 0.3 }, { right: 0.2 }, { right: 0 }],

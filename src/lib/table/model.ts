@@ -170,9 +170,7 @@ export function createEmptyTable(
  * from storage or TSV conversion pipelines.
  */
 export function createTableModel(init: TableModelInit): TableModel {
-  const normalizedRows = init.rows.map((row) =>
-    Array.from(row, normalizeCell),
-  );
+  const normalizedRows = init.rows.map((row) => Array.from(row, normalizeCell));
 
   return normalizeTableModel({
     rows: normalizedRows,
@@ -355,7 +353,10 @@ export function setHeaderRows(
 /**
  * Update (or clear) the table caption.
  */
-export function setCaption(model: TableModel, caption: string | null): TableModel {
+export function setCaption(
+  model: TableModel,
+  caption: string | null,
+): TableModel {
   return normalizeTableModel({
     ...model,
     caption: caption ?? undefined,
@@ -374,10 +375,13 @@ export function updateColumnSpec(
   const { columnCount } = getTableDimensions(model);
   assertInBounds(columnIndex, columnCount, "columnIndex");
 
-  const columnSpecs: ColumnSpec[] = Array.from({ length: columnCount }, (_, idx) => {
-    const current = model.columnSpecs?.[idx];
-    return current ? { ...current } : ({} as ColumnSpec);
-  });
+  const columnSpecs: ColumnSpec[] = Array.from(
+    { length: columnCount },
+    (_, idx) => {
+      const current = model.columnSpecs?.[idx];
+      return current ? { ...current } : ({} as ColumnSpec);
+    },
+  );
   columnSpecs[columnIndex] = spec ? { ...spec } : ({} as ColumnSpec);
 
   return normalizeTableModel({
@@ -398,7 +402,11 @@ export function updateRowStroke(
   const { rowCount } = getTableDimensions(model);
   assertInBounds(rowIndex, rowCount, "rowIndex");
 
-  const rows = ensureStrokeArray(model.strokes?.rows, rowCount, createRowStroke);
+  const rows = ensureStrokeArray(
+    model.strokes?.rows,
+    rowCount,
+    createRowStroke,
+  );
   rows[rowIndex] = stroke ? normalizeRowStroke(stroke) : createRowStroke();
 
   return normalizeTableModel({
@@ -429,7 +437,9 @@ export function updateColumnStroke(
     columnCount,
     createColumnStroke,
   );
-  columns[columnIndex] = stroke ? normalizeColumnStroke(stroke) : createColumnStroke();
+  columns[columnIndex] = stroke
+    ? normalizeColumnStroke(stroke)
+    : createColumnStroke();
 
   return normalizeTableModel({
     ...model,
@@ -530,16 +540,11 @@ function normalizeCell(cell?: CellInit | Cell): Cell {
   return result;
 }
 
-function normalizeRow(
-  row: RowInit,
-  columnCount: number,
-): Cell[] {
-  const normalized = Array.from(
-    { length: columnCount },
-    (_, index) =>
-      row[index] !== undefined
-        ? normalizeCell(row[index] as Partial<Cell>)
-        : createEmptyCell(),
+function normalizeRow(row: RowInit, columnCount: number): Cell[] {
+  const normalized = Array.from({ length: columnCount }, (_, index) =>
+    row[index] !== undefined
+      ? normalizeCell(row[index] as Partial<Cell>)
+      : createEmptyCell(),
   );
 
   return normalized;
@@ -553,36 +558,37 @@ function normalizeColumnSpecs(
     return undefined;
   }
 
-  const normalized: ColumnSpec[] = Array.from({ length: columnCount }, (_, index) => {
-    const spec = specs[index];
-    if (!spec) {
-      return {} as ColumnSpec;
-    }
-
-    const next: ColumnSpec = {};
-    if (spec.width === "auto") {
-      next.width = "auto";
-    } else if (spec.width !== undefined) {
-      const numericWidth = spec.width;
-      if (numericWidth > 0) {
-        next.width = numericWidth;
+  const normalized: ColumnSpec[] = Array.from(
+    { length: columnCount },
+    (_, index) => {
+      const spec = specs[index];
+      if (!spec) {
+        return {} as ColumnSpec;
       }
-    }
 
-    if (spec.align) {
-      next.align = spec.align;
-    }
+      const next: ColumnSpec = {};
+      if (spec.width === "auto") {
+        next.width = "auto";
+      } else if (spec.width !== undefined) {
+        const numericWidth = spec.width;
+        if (numericWidth > 0) {
+          next.width = numericWidth;
+        }
+      }
 
-    return next;
-  });
+      if (spec.align) {
+        next.align = spec.align;
+      }
+
+      return next;
+    },
+  );
 
   const hasValues = normalized.some(
     (spec) => spec.width !== undefined || spec.align !== undefined,
   );
 
-  return hasValues
-    ? normalized
-    : undefined;
+  return hasValues ? normalized : undefined;
 }
 
 function normalizeStrokes(
@@ -615,8 +621,8 @@ function normalizeStrokes(
   }
 
   return {
-    rows: hasRows ? rows ?? undefined : undefined,
-    columns: hasColumns ? columns ?? undefined : undefined,
+    rows: hasRows ? (rows ?? undefined) : undefined,
+    columns: hasColumns ? (columns ?? undefined) : undefined,
   };
 }
 
