@@ -13,6 +13,7 @@ import {
   setHeaderRows,
   setStrokes,
   updateCell,
+  patchCell,
   updateColumnSpec,
   updateColumnStroke,
   updateRowStroke,
@@ -56,6 +57,13 @@ describe("table model helpers", () => {
 
     expect(updated.rows[0][1]).toEqual({ text: "value", bold: true });
     expect(model.rows[0][1]).toEqual({ text: "" });
+  });
+
+  it("patches a cell using the helper shortcut", () => {
+    const model = createEmptyTable(1, 1);
+    const updated = patchCell(model, { rowIndex: 0, columnIndex: 0 }, { italic: true });
+
+    expect(updated.rows[0][0]).toEqual({ text: "", italic: true });
   });
 
   it("inserts and removes rows while maintaining invariants", () => {
