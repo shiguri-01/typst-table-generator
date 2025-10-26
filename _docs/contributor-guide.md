@@ -42,7 +42,7 @@
 ## CI
 - Workflow: `.github/workflows/ci.yml`
 - Triggers: push / pull_request to `main`, manual run
-- Steps: `pnpm check`, `pnpm exec tsc --noEmit`, `pnpm exec vitest run --pool=threads --maxWorkers=1 --minWorkers=1`, `pnpm build`
+- Steps: `pnpm check`, `pnpm exec tsc --noEmit`, `pnpm exec vitest run`, `pnpm build`
 - Treat CI as canonical; investigate and fix failures before merging.
 
 ## Work Logs

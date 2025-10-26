@@ -26,6 +26,7 @@ Git hook と CI の自動チェックを整備して、push / PR 前後のワー
 - AGENTS は概要、contributor-guide は詳細という棲み分けに修正。
 - ブランチ名を `chore/workflow-improvements` に更新。
 - push は環境の DNS 制限で失敗したためローカルコミットのみ。後でリトライ必要。
+- CI workflow で Vitest を `vitest run --pool=threads --maxWorkers=2` に更新。
 
 
 ## Summary
@@ -38,5 +39,5 @@ pre-push フックで型チェック → テスト → ビルドを自動化し�
 ローカルでの `lefthook run pre-push` が skip 表示になる挙動を初めて知った。`--force` を付けて再現するか、個別コマンドで追う運用を覚えたので次からは迷わなそう。
 
 ## Pre-PR Checklist
-- [ ] Spec確認：必要な変更は `_docs/spec.md` に反映し、不要なら Summary に理由を記してからチェック
-- [ ] PR本文案にこのログへのリンクを含める（PR作成直前に確認）
+- [x] Spec確認：必要な変更は `_docs/spec.md` に反映し、不要なら Summary に理由を記してからチェック
+- [x] PR本文案にこのログへのリンクを含める（PR作成直前に確認）
