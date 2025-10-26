@@ -55,7 +55,7 @@ type ColumnStroke = { left?: StrokeValue; right?: StrokeValue }
 > features (複雑な結合や条件付きスタイルなど), they can copy the generated snippet and continue by hand. We avoid storing auxiliary
 > hints such as `dataType` or future-facing merge metadata so that exporting/importing stays predictable and template-like.
 
-#### Field semantics
+### Field semantics
 
 - **`rows`** — 矩形のセル行列。実装では最長行の列数を `columnCount` とし、短い行は空文字列セルでパディングして保存する。`rows.length`
   は 1 以上を想定し、空テーブルは UI 側でガードする。
