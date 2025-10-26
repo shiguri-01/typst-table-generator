@@ -120,10 +120,10 @@ type StylePreset = (model: TableModel) => PresetOutput
 
 `StylePreset` は必要に応じて `TableModel` を参照し、`strokes` へ追記したり、`tableArgs` として Typst に渡すパラメータを返す。生成パイプラインは `const preset = STYLE_PRESETS[id]; const overrides = preset?.(model);` のように呼び出し、戻り値を `model` からの生データに重ねる。UI 側は「プリセット適用→必要に応じて個別調整→JSON 保存」という流れを想定するが、適用結果は `strokes` 等の通常フィールドに書き戻される。
 
-> **Spec change (2025-02-17)** `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
-> **Spec change (2025-02-17)** `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
-> **Spec change (2025-02-18)** セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
-> **Spec change (2025-02-18)** セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
+> **Spec change (2025-10-26)** `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
+> **Spec change (2025-10-26)** `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
+> **Spec change (2025-10-26)** セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
+> **Spec change (2025-10-26)** セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
 
 #### Preset application flow
 
