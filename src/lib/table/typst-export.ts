@@ -236,10 +236,13 @@ function renderCell(cell: Cell, columnAlign: Align): string {
   return bracketed;
 }
 
+const INLINE_ESCAPE_CHARS = new Set(["#", "[", "]"]);
+
 /**
- * Typst closes inline content with `]`. Insert a protecting backslash when the
- * user-provided text would terminate the bracket prematurely. Existing escape
- * sequences remain untouched (odd number of trailing backslashes).
+ * Typst encloses inline text with `[...]` and reserves `#` for expressions.
+ * Insert a protecting backslash whenever user text contains one of those
+ * markers and it is not already escaped. Existing escape sequences remain
+ * untouched (odd number of trailing backslashes).
  */
 function escapeTypstInline(value: string): string {
   if (value.length === 0) {
@@ -250,22 +253,24 @@ function escapeTypstInline(value: string): string {
   let result = "";
   for (let index = 0; index < normalized.length; index += 1) {
     const char = normalized[index];
-    if (char === "]") {
-      let backslashCount = 0;
-      for (let lookback = index - 1; lookback >= 0; lookback -= 1) {
-        if (normalized[lookback] === "\\") {
-          backslashCount += 1;
-        } else {
-          break;
-        }
-      }
-      if (backslashCount % 2 === 0) {
-        result += "\\";
-      }
+    if (INLINE_ESCAPE_CHARS.has(char) && !isEscaped(normalized, index)) {
+      result += "\\";
     }
     result += char;
   }
   return result;
+}
+
+function isEscaped(source: string, index: number): boolean {
+  let backslashCount = 0;
+  for (let lookback = index - 1; lookback >= 0; lookback -= 1) {
+    if (source[lookback] === "\\") {
+      backslashCount += 1;
+    } else {
+      break;
+    }
+  }
+  return backslashCount % 2 === 1;
 }
 
 function formatNumeric(value: number): string {

@@ -94,4 +94,22 @@ describe("renderTableModelToTypst", () => {
 
     expect(typst).not.toContain("align:");
   });
+
+  it("escapes inline markers without double escaping existing sequences", () => {
+    const model = createTableModel({
+      rows: [
+        [{ text: "Literal # and [brackets]" }, { text: "Already \\# ok" }],
+      ],
+      caption: null,
+    });
+
+    const typst = renderTableModelToTypst(model, { wrapFigure: false });
+
+    expect(typst).toMatchInlineSnapshot(`
+"#table(
+  columns: (auto, auto),
+  [Literal \\# and \\[brackets\\]] [Already \\# ok],
+)"
+    `);
+  });
 });
