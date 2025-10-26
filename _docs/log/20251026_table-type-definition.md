@@ -17,6 +17,7 @@
 - `TableModel` の正規化処理を helper 内部で一元化。行列編集系はすべて `normalizeTableModel` を通すことで列数/ストローク配列を同期する。
 - `headerRows` は自動調整せずクランプのみ。UI 側でヘッダー行挿入時に明示的に更新する想定。
 - ストロークは空オブジェクトしか残らない場合は `undefined` に落とし、JSON を冗長化しない。
+- ランタイムで `typeof` ガードを使わず、型安全な API (`CellUpdater`, `patchCell` など) へ整理して TypeScript のチェックに委ねる。
 - 気づき/意思決定:
 - `createEmptyTable` と `createTableModel` の二段構えにし、UI 初期化とインポート双方で使えるようにした。
 - `StrokeValue` の数値は正のみ許容し、0 や負数は破棄する。

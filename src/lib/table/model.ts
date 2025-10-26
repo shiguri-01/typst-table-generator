@@ -24,6 +24,12 @@ export interface Cell {
 }
 
 /**
+ * Lightweight input shape for constructing cells. All fields are optional and
+ * default to the neutral values described in the spec.
+ */
+export type CellInit = Readonly<Partial<Cell>>;
+
+/**
  * Column-wise hints for Typst table generation. Missing values fall back to
  * Typst defaults (`auto` width, `left` alignment).
  */
@@ -76,6 +82,16 @@ export interface TableModel {
 }
 
 /**
+ * Immutable row input used for initialization or insertion helpers.
+ */
+export type RowInit = ReadonlyArray<CellInit>;
+
+/**
+ * Immutable column input used when inserting a column.
+ */
+export type ColumnInit = ReadonlyArray<CellInit>;
+
+/**
  * Coordinates pointing at a single cell within a table.
  */
 export interface TableCellPosition {
@@ -88,7 +104,7 @@ export interface TableCellPosition {
  * permissive so that callers can omit optional properties.
  */
 export interface TableModelInit {
-  rows: ReadonlyArray<ReadonlyArray<Partial<Cell> | Cell>>;
+  rows: ReadonlyArray<RowInit>;
   headerRows?: number;
   caption?: string | null;
   columnSpecs?: ReadonlyArray<ColumnSpec | undefined>;
@@ -106,11 +122,9 @@ export interface CreateEmptyTableOptions {
 }
 
 /**
- * Patch values accepted by `updateCell`.
+ * Change handler accepted by `updateCell`.
  */
-export type CellPatch =
-  | Partial<Cell>
-  | ((current: Cell) => Cell | Partial<Cell>);
+export type CellUpdater = (current: Cell) => Cell;
 
 /**
  * Create a new table filled with blank cells. Throws if either dimension is
@@ -181,7 +195,7 @@ export function getTableDimensions(model: TableModel): {
 export function updateCell(
   model: TableModel,
   position: TableCellPosition,
-  patch: CellPatch,
+  updater: CellUpdater,
 ): TableModel {
   const { rowIndex, columnIndex } = position;
   const { rowCount, columnCount } = getTableDimensions(model);
@@ -192,9 +206,7 @@ export function updateCell(
   const currentRow = model.rows[rowIndex].map(cloneCell);
   const currentCell = currentRow[columnIndex];
 
-  const nextCellBase =
-    typeof patch === "function" ? patch(cloneCell(currentCell)) : patch;
-  const nextCell = normalizeCell({ ...currentCell, ...nextCellBase });
+  const nextCell = normalizeCell(updater(cloneCell(currentCell)));
 
   currentRow[columnIndex] = nextCell;
   rows[rowIndex] = currentRow;
@@ -206,13 +218,27 @@ export function updateCell(
 }
 
 /**
+ * Convenience helper for applying a shallow patch to a cell.
+ */
+export function patchCell(
+  model: TableModel,
+  position: TableCellPosition,
+  patch: Partial<Cell>,
+): TableModel {
+  return updateCell(model, position, (cell) => ({
+    ...cell,
+    ...patch,
+  }));
+}
+
+/**
  * Insert a blank (or provided) row at `rowIndex`. The new row inherits the
  * current column count; shorter rows are padded, longer rows are truncated.
  */
 export function insertRow(
   model: TableModel,
   rowIndex: number,
-  row?: ReadonlyArray<Partial<Cell> | Cell>,
+  row?: RowInit,
 ): TableModel {
   const { rowCount, columnCount } = getTableDimensions(model);
   assertInsertIndex(rowIndex, rowCount, "rowIndex");
@@ -254,7 +280,7 @@ export function removeRow(model: TableModel, rowIndex: number): TableModel {
 export function insertColumn(
   model: TableModel,
   columnIndex: number,
-  column?: ReadonlyArray<Partial<Cell> | Cell>,
+  column?: ColumnInit,
 ): TableModel {
   const { rowCount, columnCount } = getTableDimensions(model);
   assertInsertIndex(columnIndex, columnCount, "columnIndex");
@@ -467,31 +493,26 @@ function cloneCell(cell: Cell): Cell {
   };
 }
 
-function normalizeCell(cell: Partial<Cell> | Cell | null | undefined): Cell {
-  const source = cell ?? {};
-  const text =
-    typeof source.text === "string"
-      ? source.text
-      : source.text === undefined
-        ? ""
-        : String(source.text);
+function normalizeCell(cell?: CellInit | Cell): Cell {
+  const base = cell ?? EMPTY_CELL;
+  const text = base.text ?? "";
 
   const result: Cell = {
     text,
   };
 
-  const align = (source as { align?: unknown }).align;
-  if (isAlign(align)) {
+  const align = base.align;
+  if (align) {
     result.align = align;
   }
 
-  const bold = (source as { bold?: unknown }).bold;
-  if (typeof bold === "boolean") {
+  const bold = base.bold;
+  if (bold !== undefined) {
     result.bold = bold;
   }
 
-  const italic = (source as { italic?: unknown }).italic;
-  if (typeof italic === "boolean") {
+  const italic = base.italic;
+  if (italic !== undefined) {
     result.italic = italic;
   }
 
@@ -499,7 +520,7 @@ function normalizeCell(cell: Partial<Cell> | Cell | null | undefined): Cell {
 }
 
 function normalizeRow(
-  row: ReadonlyArray<Partial<Cell> | Cell>,
+  row: RowInit,
   columnCount: number,
 ): Cell[] {
   const normalized = Array.from(
@@ -530,11 +551,14 @@ function normalizeColumnSpecs(
     const next: ColumnSpec = {};
     if (spec.width === "auto") {
       next.width = "auto";
-    } else if (typeof spec.width === "number" && spec.width > 0) {
-      next.width = spec.width;
+    } else if (spec.width !== undefined) {
+      const numericWidth = spec.width;
+      if (numericWidth > 0) {
+        next.width = numericWidth;
+      }
     }
 
-    if (isAlign(spec.align)) {
+    if (spec.align) {
       next.align = spec.align;
     }
 
@@ -601,7 +625,7 @@ function normalizeStrokeValue(
   if (value === "none") {
     return "none";
   }
-  if (typeof value === "number" && value > 0) {
+  if (value !== undefined && value > 0) {
     return value;
   }
   return undefined;
@@ -671,10 +695,6 @@ function getColumnCount(rows: Cell[][]): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(Number.isFinite(value) ? value : min, min), max);
-}
-
-function isAlign(value: unknown): value is Align {
-  return value === "left" || value === "center" || value === "right";
 }
 
 function assertInBounds(
