@@ -17,16 +17,17 @@ Typst コード生成のコアロジックを `src/lib/table/model.ts` に実装
 - 設計・検討メモ:
 - `renderTableModelToTypst` まわりを `src/lib/table/typst-export.ts` へ分離し、`model.ts` は構造編集ヘルパー専任にした。`TypstExportOptions` で `header`/`strokes`/`caption` をまとめて制御。
 - 列幅は `(auto | <pt>)` のタプル、横位置は必要な場合だけ `align` 行を出力。セル単位の `align` は `table.cell` でオーバーライド。
-- `[]#` の未エスケープによる Typst エラーを避けるため、偶数個のバックスラッシュ判定で必要最小限のエスケープを実装。
+- `#` / `[` / `]` の未エスケープによる Typst エラーを避けるため、偶数個のバックスラッシュ判定で必要最小限のエスケープを実装。
 - 気づき/意思決定:
 - `strokes` は Map 経由で境界インデックスを計算し、後勝ちで上書きする。line 出力順はインデックス昇順で安定化。
 - キャプションがある場合のみ `#figure` 包装。`wrapFigure: false` で将来 UI から切り替えられる余地を残した。
+- レビュー指摘に合わせてエスケープ対象を整理し、テストで `#` / `[` ケースを追加して回帰検知を強化。
 - 困りごと/対応:
 - `pnpm test` が `tinypool ERR_IPC_CHANNEL_CLOSED` で落ちる。`--runInBand`/`--pool=child` も状況変わらず。環境依存とみなして PR 時に再確認する。
 
 ## Summary
 
-`renderTableModelToTypst` とオプション型を追加し、`TableModel` 単独で Typst コードを整形して出力できるようになった。行/列ストローク、キャプション (`#figure` 包装)、セルごとの強調・整列など仕様に沿った要素をすべてカバーし、Vitest で代表ケースのスナップショットを押さえた。
+`renderTableModelToTypst` とオプション型を追加し、`TableModel` 単独で Typst コードを整形して出力できるようになった。行/列ストローク、キャプション (`#figure` 包装)、セルごとの強調・整列など仕様に沿った要素をすべてカバーし、Vitest で代表ケースのスナップショットを押さえた。さらに inline エスケープを `#`・`[`・`]` 対応に拡張し、専用テストを追加済み。
 
 ## Next (必要に応じて)
 
