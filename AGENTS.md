@@ -47,32 +47,14 @@ Details and extra commands: @\_docs/contributor-guide.md .
 
 ## Workflow
 
-1. Understand context
-   - Read @README.md, @AGENTS.md, @\_docs/spec.md .
-2. Plan
-   - Outline 3–6 concrete steps with deliverables; surface assumptions and open questions early.
-   - Create a work log under `_docs/log/` named `YYYYMMDD_<kebab-case-slug>.md` (see Work Logs). Write Purpose and initial Plan/TODO.
-3. Implement
-   - Small, focused diffs; follow Biome; co-locate tests (`*.test.tsx/ts`); avoid repo‑wide lint, rely on staged checks.
-   - Update the work log with design notes, obstacles, and TODO progress.
-4. Validate
-   - Run `pnpm check`, `pnpm test`, and `pnpm build` when build/runtime changes. Optional: `pnpm exec lefthook run pre-commit` after `git add`.
-5. Update spec/docs
-   - Edit relevant sections in `_docs/spec.md`. Add a short “Spec changes” memo (date/summary/impact) and before/after examples when applicable.
-6. Commit
-   - Imperative, focused messages (e.g., `feat: support TSV paste`).
-7. Close the work log
-   - Add a short reflection and, if needed, “Next” items. Keep as informal memo.
-8. Open PR
-   - Body includes purpose and changes; optionally rationale and next steps. Link issues as needed; include spec diff.
-   - Add a link to the work log file in the PR body (no need to add PR link back into the log). Before opening, tick the log’s Pre‑PR Checklist.
-
-## Lefthook Automation
-
-- Pre-commit runs Biome on staged files only: see `lefthook.yml` (`biome check --write ... {staged_files}`) and auto-stages fixes.
-- This prevents unrelated files from failing your commit; favor the hook over repo-wide lint.
-- Local dry-run: `pnpm exec lefthook run pre-commit` (after `git add ...`).
-- Planned: pre-push to run tests/build. Until added, run `pnpm test` (and optionally `pnpm build`) before pushing.
+- **Context**: scan @README.md and @AGENTS.md; open @_docs/spec.md only when behavior or UX changes.
+- **Plan**: write 3–6 action steps; create `_docs/log/YYYYMMDD_<slug>.md` from the template　(`_docs/log/_TEMPLATE.md`) and fill Purpose + TODO.
+- **Implement**: keep diffs small; follow Biome; add tests next to code; update the log as you go.
+- **Validate**: run `pnpm check`, `pnpm test`, `pnpm build` (when relevant).
+- **Spec/Docs**: update `_docs/spec.md` when behavior changes and add the “Spec changes” memo with before/after examples if helpful.
+- **Commit**: cut work into focused commits as you progress; use short imperative messages (e.g., `feat: support TSV paste`).
+- **Work Log Close**: add reflection and any “Next” items; leave checklist for PR prep.
+- **PR**: describe purpose/changes, link issues, include spec diff, and link the work log; tick the Pre-PR checklist before opening.
 
 ## Notes for Contributors
 
@@ -81,7 +63,7 @@ Details and extra commands: @\_docs/contributor-guide.md .
 
 ## Work Logs
 
-- Location: @_docs/log/ with file name `YYYYMMDD_<kebab-case-slug>.md`(date = start day). Example:`_docs/log/20251025_tsv-paste.md`.
+- Location: @_docs/log/ with file name `YYYYMMDD_<kebab-case-slug>.md` (date = start day). Example: `_docs/log/20251025_tsv-paste.md`.
 - Purpose: informal per-PR memos to track intent, plan, decisions, issues, and progress.
 - Start from `_docs/log/_TEMPLATE.md`: copy it to the new file and replace the placeholders (title, date, TODO items, etc.).
 - Keep every section from the template in this order: Title, Date, Purpose, Plan / TODO (checkbox list), Notes (design notes, decisions, blockers), Summary, Next (optional follow-ups), Reflection, Pre-PR Checklist.

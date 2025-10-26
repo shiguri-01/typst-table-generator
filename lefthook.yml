@@ -4,3 +4,18 @@ pre-commit:
       glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
       run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
       stage_fixed: true
+
+pre-push:
+  commands:
+    check:
+      glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: pnpm exec biome check --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {push_files}
+    typecheck:
+      glob: "{src/**/*,*.config.{ts,js,mjs},tsconfig.json,package.json}"
+      run: pnpm exec tsc --noEmit
+    test:
+      glob: "{src/**/*,*.config.{ts,js,mjs},package.json}"
+      run: pnpm exec vitest run --passWithNoTests=true
+    build:
+      glob: "{src/**/*,*.config.{ts,js,mjs},tsconfig.json,package.json,public/**/*}"
+      run: pnpm build
