@@ -1,7 +1,8 @@
 # Contributor Guide
 
 ## Tech Stack
-- Language/Runtime: TypeScript; Bun 1.x recommended (Node 22+ supported).
+- Language/Runtime: TypeScript; Node 22+.
+- Package Manager: pnpm.
 - Build/Dev: Vite 7, `@vitejs/plugin-react`, `vite-tsconfig-paths`.
 - Framework/Routing: React 19, TanStack Router (+ plugin, React Start, SSR query utils).
 - Styling/UI: Intent UI components with Tailwind CSS v4, `tailwind-merge`, `tailwindcss-react-aria-components` (built on React ARIA). Follow React ARIA patterns and a11y conventions.
@@ -16,11 +17,11 @@
 - Generated: `src/routeTree.gen.ts` (do not edit).
 
 ## Commands
-- Dev server: `bun run dev` → `http://localhost:3000`
-- Build: `bun run build`; Preview: `bun run serve`
-- Tests: `bun run test`
-- Checks: `bun run check` (safe); Format writes: `bun run format`
-- Hooks install: `bun run prepare`
+- Dev server: `pnpm dev` → `http://localhost:3000`
+- Build: `pnpm build`; Preview: `pnpm serve`
+- Tests: `pnpm test`
+- Checks: `pnpm check` (safe); Format writes: `pnpm format`
+- Hooks install: `pnpm prepare`
 
 ## Coding Style & Naming
 - TypeScript, 2-space indentation. Prefer functional React components.
@@ -36,8 +37,8 @@
 ## Lefthook Automation
 - Pre-commit runs Biome on staged files only:
   - See `lefthook.yml` (uses `biome check --write ... {staged_files}` and re-stages fixes).
-- Prefer the hook over repo-wide lint. Simulate via `bunx lefthook run pre-commit` after staging.
-- Planned: pre-push tests/build. Until then, run `bun run test` (and optionally `bun run build`).
+- Prefer the hook over repo-wide lint. Simulate via `pnpm exec lefthook run pre-commit` after staging.
+- Planned: pre-push tests/build. Until then, run `pnpm test` (and optionally `pnpm build`).
 
 ## Work Logs
 - Location: @_docs/log/ with `YYYYMMDD_<kebab-case-slug>.md` (date = start day).

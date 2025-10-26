@@ -17,9 +17,9 @@ See @\_docs/contributor-guide.md for Tech Stack, structure, commands, style, tes
 
 ## Quick Start
 
-- Dev: `bun run dev` → http://localhost:3000
-- Checks/Tests: `bun run check`, `bun run test`
-- Build/Preview: `bun run build`, `bun run serve`
+- Dev: `pnpm dev` → [http://localhost:3000](http://localhost:3000)
+- Checks/Tests: `pnpm check`, `pnpm test`
+- Build/Preview: `pnpm build`, `pnpm serve`
 
 Details and extra commands: @\_docs/contributor-guide.md .
 
@@ -32,7 +32,7 @@ Details and extra commands: @\_docs/contributor-guide.md .
 ## Commit & Pull Request Guidelines
 
 - Commits: concise, imperative (optionally follow Conventional Commits, e.g., `feat: support TSV paste`).
-- Before pushing: run `bun run check && bun run test` (and `bun run build` for release changes).
+- Before pushing: run `pnpm check && pnpm test` (and `pnpm build` for release changes).
 - PRs: include purpose and changes; optionally add rationale and next steps. No template enforcement.
 - If the change affects behavior/spec, update `_docs/spec.md` in the same PR.
 - Keep PRs small and focused; avoid editing generated files.
@@ -56,7 +56,7 @@ Details and extra commands: @\_docs/contributor-guide.md .
    - Small, focused diffs; follow Biome; co-locate tests (`*.test.tsx/ts`); avoid repo‑wide lint, rely on staged checks.
    - Update the work log with design notes, obstacles, and TODO progress.
 4. Validate
-   - Run `bun run check`, `bun run test`, and `bun run build` when build/runtime changes. Optional: `bunx lefthook run pre-commit` after `git add`.
+   - Run `pnpm check`, `pnpm test`, and `pnpm build` when build/runtime changes. Optional: `pnpm exec lefthook run pre-commit` after `git add`.
 5. Update spec/docs
    - Edit relevant sections in `_docs/spec.md`. Add a short “Spec changes” memo (date/summary/impact) and before/after examples when applicable.
 6. Commit
@@ -71,8 +71,8 @@ Details and extra commands: @\_docs/contributor-guide.md .
 
 - Pre-commit runs Biome on staged files only: see `lefthook.yml` (`biome check --write ... {staged_files}`) and auto-stages fixes.
 - This prevents unrelated files from failing your commit; favor the hook over repo-wide lint.
-- Local dry-run: `bunx lefthook run pre-commit` (after `git add ...`).
-- Planned: pre-push to run tests/build. Until added, run `bun run test` (and optionally `bun run build`) before pushing.
+- Local dry-run: `pnpm exec lefthook run pre-commit` (after `git add ...`).
+- Planned: pre-push to run tests/build. Until added, run `pnpm test` (and optionally `pnpm build`) before pushing.
 
 ## Notes for Contributors
 
