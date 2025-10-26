@@ -44,7 +44,7 @@ describe("renderTableModelToTypst", () => {
     table.vline(x: 0, stroke: 0.3pt),
     table.vline(x: 1, stroke: 0.2pt),
     table.vline(x: 2, stroke: 0.4pt),
-    [emph[Accuracy]] table.cell(align: right)[0.953 (#)],
+    [emph[Accuracy]] table.cell(align: right)[0.953 (\\#)],
     [Notes] [See Appendix B\\] for detail],
   )
   ],
@@ -79,7 +79,7 @@ describe("renderTableModelToTypst", () => {
         [Escaped] [emph[Already \\] ok]],
     ],
     table.hline(y: 0, stroke: 0.4pt),
-    table.cell(align: center)[Literal #] [],
+    table.cell(align: center)[Literal \\#] [],
 )"
     `);
   });
