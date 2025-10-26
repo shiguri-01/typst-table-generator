@@ -35,10 +35,15 @@
 - Use Testing Library patterns (query by role/label) to preserve a11y.
 
 ## Lefthook Automation
-- Pre-commit runs Biome on staged files only:
-  - See `lefthook.yml` (uses `biome check --write ... {staged_files}` and re-stages fixes).
-- Prefer the hook over repo-wide lint. Simulate via `pnpm exec lefthook run pre-commit` after staging.
-- Planned: pre-push tests/build. Until then, run `pnpm test` (and optionally `pnpm build`).
+- pre-commit: `pnpm exec biome check --write … {staged_files}`
+- pre-push: `pnpm exec tsc --noEmit`, `pnpm exec vitest run`, `pnpm build`
+- Hooks may auto-skip when Git sees no diff. Do not bypass them manually. Dry-run with `pnpm exec lefthook run pre-push --force`.
+
+## CI
+- Workflow: `.github/workflows/ci.yml`
+- Triggers: push / pull_request to `main`, manual run
+- Steps: `pnpm check`, `pnpm exec tsc --noEmit`, `pnpm exec vitest run --pool=threads --maxWorkers=1 --minWorkers=1`, `pnpm build`
+- Treat CI as canonical; investigate and fix failures before merging.
 
 ## Work Logs
 - Location: @_docs/log/ with `YYYYMMDD_<kebab-case-slug>.md` (date = start day).
