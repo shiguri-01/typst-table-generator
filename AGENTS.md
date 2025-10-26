@@ -17,7 +17,7 @@ See @\_docs/contributor-guide.md for Tech Stack, structure, commands, style, tes
 
 ## Quick Start
 
-- Dev: `pnpm dev` → http://localhost:3000
+- Dev: `pnpm dev` → [http://localhost:3000](http://localhost:3000)
 - Checks/Tests: `pnpm check`, `pnpm test`
 - Build/Preview: `pnpm build`, `pnpm serve`
 
