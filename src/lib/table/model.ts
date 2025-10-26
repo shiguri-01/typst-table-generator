@@ -38,6 +38,8 @@ export interface ColumnSpec {
   align?: Align;
 }
 
+type StrokeEntry = RowStroke | ColumnStroke;
+
 /**
  * Stroke intensity along a boundary. `"none"` disables the line; positive
  * numbers are interpreted as pt units when exporting to Typst.
@@ -90,6 +92,14 @@ export type RowInit = ReadonlyArray<CellInit>;
  * Immutable column input used when inserting a column.
  */
 export type ColumnInit = ReadonlyArray<CellInit>;
+
+interface TableModelLike {
+  rows: ReadonlyArray<ReadonlyArray<Cell>>;
+  headerRows?: number;
+  caption?: string;
+  columnSpecs?: ReadonlyArray<ColumnSpec | undefined>;
+  strokes?: TableStrokes;
+}
 
 /**
  * Coordinates pointing at a single cell within a table.
@@ -282,7 +292,7 @@ export function insertColumn(
   columnIndex: number,
   column?: ColumnInit,
 ): TableModel {
-  const { rowCount, columnCount } = getTableDimensions(model);
+  const { columnCount } = getTableDimensions(model);
   assertInsertIndex(columnIndex, columnCount, "columnIndex");
 
   const rows = model.rows.map((row, rowIdx) => {
@@ -310,7 +320,7 @@ export function removeColumn(
   model: TableModel,
   columnIndex: number,
 ): TableModel {
-  const { rowCount, columnCount } = getTableDimensions(model);
+  const { columnCount } = getTableDimensions(model);
   assertInBounds(columnIndex, columnCount, "columnIndex");
   if (columnCount <= 1) {
     throw new RangeError("Table must contain at least one column");
@@ -364,10 +374,11 @@ export function updateColumnSpec(
   const { columnCount } = getTableDimensions(model);
   assertInBounds(columnIndex, columnCount, "columnIndex");
 
-  const columnSpecs = model.columnSpecs
-    ? model.columnSpecs.map((item) => (item ? { ...item } : undefined))
-    : Array<ColumnSpec | undefined>(columnCount).fill(undefined);
-  columnSpecs[columnIndex] = spec ? { ...spec } : undefined;
+  const columnSpecs: ColumnSpec[] = Array.from({ length: columnCount }, (_, idx) => {
+    const current = model.columnSpecs?.[idx];
+    return current ? { ...current } : ({} as ColumnSpec);
+  });
+  columnSpecs[columnIndex] = spec ? { ...spec } : ({} as ColumnSpec);
 
   return normalizeTableModel({
     ...model,
@@ -448,7 +459,7 @@ export function setStrokes(
  * Ensure the underlying arrays obey the invariants described in the spec.
  * Primarily useful when ingesting user-provided data.
  */
-export function normalizeTableModel(model: TableModel): TableModel {
+export function normalizeTableModel(model: TableModelLike): TableModel {
   if (model.rows.length === 0) {
     throw new RangeError("Table must contain at least one row");
   }
@@ -542,10 +553,10 @@ function normalizeColumnSpecs(
     return undefined;
   }
 
-  const normalized = Array.from({ length: columnCount }, (_, index) => {
+  const normalized: ColumnSpec[] = Array.from({ length: columnCount }, (_, index) => {
     const spec = specs[index];
     if (!spec) {
-      return {};
+      return {} as ColumnSpec;
     }
 
     const next: ColumnSpec = {};
@@ -565,7 +576,11 @@ function normalizeColumnSpecs(
     return next;
   });
 
-  return normalized.some((spec) => Object.keys(spec).length > 0)
+  const hasValues = normalized.some(
+    (spec) => spec.width !== undefined || spec.align !== undefined,
+  );
+
+  return hasValues
     ? normalized
     : undefined;
 }
@@ -592,8 +607,8 @@ function normalizeStrokes(
     createColumnStroke,
   );
 
-  const hasRows = rows?.some(hasStrokeValues) ?? false;
-  const hasColumns = columns?.some(hasStrokeValues) ?? false;
+  const hasRows = rows?.some(hasRowStrokeValues) ?? false;
+  const hasColumns = columns?.some(hasColumnStrokeValues) ?? false;
 
   if (!hasRows && !hasColumns) {
     return undefined;
@@ -606,17 +621,35 @@ function normalizeStrokes(
 }
 
 function normalizeRowStroke(stroke: RowStroke): RowStroke {
-  return filterStroke({
-    top: normalizeStrokeValue(stroke.top),
-    bottom: normalizeStrokeValue(stroke.bottom),
-  });
+  const result: RowStroke = {};
+
+  const top = normalizeStrokeValue(stroke.top);
+  if (top !== undefined) {
+    result.top = top;
+  }
+
+  const bottom = normalizeStrokeValue(stroke.bottom);
+  if (bottom !== undefined) {
+    result.bottom = bottom;
+  }
+
+  return result;
 }
 
 function normalizeColumnStroke(stroke: ColumnStroke): ColumnStroke {
-  return filterStroke({
-    left: normalizeStrokeValue(stroke.left),
-    right: normalizeStrokeValue(stroke.right),
-  });
+  const result: ColumnStroke = {};
+
+  const left = normalizeStrokeValue(stroke.left);
+  if (left !== undefined) {
+    result.left = left;
+  }
+
+  const right = normalizeStrokeValue(stroke.right);
+  if (right !== undefined) {
+    result.right = right;
+  }
+
+  return result;
 }
 
 function normalizeStrokeValue(
@@ -631,18 +664,12 @@ function normalizeStrokeValue(
   return undefined;
 }
 
-function filterStroke<T extends Record<string, unknown>>(stroke: T): T {
-  const result = { ...stroke };
-  for (const key of Object.keys(result)) {
-    if (result[key] === undefined) {
-      delete result[key];
-    }
-  }
-  return result;
+function hasRowStrokeValues(stroke: RowStroke): boolean {
+  return stroke.top !== undefined || stroke.bottom !== undefined;
 }
 
-function hasStrokeValues(stroke: Record<string, unknown>): boolean {
-  return Object.keys(stroke).length > 0;
+function hasColumnStrokeValues(stroke: ColumnStroke): boolean {
+  return stroke.left !== undefined || stroke.right !== undefined;
 }
 
 function createRowStroke(): RowStroke {
@@ -660,7 +687,7 @@ function cloneStrokes(strokes: TableStrokes): TableStrokes {
   };
 }
 
-function ensureStrokeArray<T extends Record<string, unknown>>(
+function ensureStrokeArray<T extends StrokeEntry>(
   entries: ReadonlyArray<T> | undefined,
   length: number,
   createDefault: () => T,
@@ -671,7 +698,7 @@ function ensureStrokeArray<T extends Record<string, unknown>>(
   return result;
 }
 
-function normalizeStrokeArray<T extends Record<string, unknown>>(
+function normalizeStrokeArray<T extends StrokeEntry>(
   entries: ReadonlyArray<T> | undefined,
   length: number,
   normalize: (entry: T) => T,
@@ -686,7 +713,7 @@ function normalizeStrokeArray<T extends Record<string, unknown>>(
   );
 }
 
-function getColumnCount(rows: Cell[][]): number {
+function getColumnCount(rows: ReadonlyArray<ReadonlyArray<Cell>>): number {
   return rows.reduce(
     (max, row) => Math.max(max, row.length),
     rows[0]?.length ?? 0,
