@@ -20,29 +20,30 @@ Typst の `#table()` コードを生成するテーブルエディタです。
 
 ### 必要な環境
 
-- Bun 1.x（または Node.js 22 以降）と最新のパッケージマネージャを推奨
+- pnpm
+- node
 
 ### セットアップ
 
 1. 依存関係のインストール  
    ```bash
-   bun install
+   pnpm install
    ```
 2. 開発サーバーの起動  
    ```bash
-   bun run dev
+   pnpm dev
    ```
    ブラウザで <http://localhost:3000> にアクセスするとアプリを確認できます。
 
 ### スクリプト
 
-- 型チェック・lint（Biome）: `bun run check`
-- フォーマット: `bun run format`
-- Lint（自動修正あり）: `bun run lint`
-- 単体テスト（Vitest + Testing Library）: `bun run test`
-- 本番ビルド: `bun run build`
-- ビルド成果物のプレビュー: `bun run serve`
-- Git フック（Lefthook）のセットアップ: `bun run prepare`
+- 型チェック・lint（Biome）: `pnpm check`
+- フォーマット: `pnpm format`
+- Lint（自動修正あり）: `pnpm lint`
+- 単体テスト（Vitest + Testing Library）: `pnpm test`
+- 本番ビルド: `pnpm build`
+- ビルド成果物のプレビュー: `pnpm serve`
+- Git フック（Lefthook）のセットアップ: `pnpm prepare`
 
 ## ドキュメント
 

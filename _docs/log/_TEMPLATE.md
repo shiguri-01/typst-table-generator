@@ -27,6 +27,6 @@
 
 ## Pre-PR Checklist
 - [ ] `_docs/spec.md` 更新（該当章 + 「Specの変更点」メモ）（必要に応じて）
-- [ ] `bun run check` を通過
-- [ ] `bun run test` を通過（必要なテストを追加）
-- [ ] `bun run build`（ビルド/ランタイムに影響がある場合）
+- [ ] `pnpm check` を通過
+- [ ] `pnpm test` を通過（必要なテストを追加）
+- [ ] `pnpm build`（ビルド/ランタイムに影響がある場合）
