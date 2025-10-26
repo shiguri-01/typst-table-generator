@@ -23,6 +23,7 @@
 - `StrokeValue` の数値は正のみ許容し、0 や負数は破棄する。
 - 困りごと/対応:
 - `bun run check` / `bun run test` は `biome` / `vitest` コマンドが `.bunx` 化されていて PATH から解決できず失敗。代替実行方法は未解決なので結果は未取得。
+- `bun run format` も同じく `biome` バイナリが見つからず (`biome: command not found`) により実行不可。
 - 型エラーは `node node_modules/typescript/lib/tsc.js --noEmit` を直接実行して確認し、修正後は 0 exit を確認。
 
 
