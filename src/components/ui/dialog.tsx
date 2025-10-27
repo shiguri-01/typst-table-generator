@@ -1,6 +1,6 @@
 "use client";
 
-import { IconX } from "@tabler/icons-react";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useRef } from "react";
 import type { HeadingProps, TextProps } from "react-aria-components";
 import {
@@ -191,7 +191,7 @@ const DialogCloseIcon = ({
         className,
       )}
     >
-      <IconX className="size-4" />
+      <XMarkIcon className="size-4" />
     </PrimitiveButton>
   ) : null;
 };

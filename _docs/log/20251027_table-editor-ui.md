@@ -20,6 +20,7 @@
 - 設計・検討メモ:
 - Zustand ストアを `immer` + 独自ヒストリーで実装。`temporal` が提供されていなかったため、スナップショット履歴 (最大50件) を自前で保持し Undo/Redo に対応。
 - プリセット適用時は `STYLE_PRESETS` の行境界パッチを既存罫線へマージしつつ、`tableArgs` を個別保持して Typst 出力時に参照できるようにした。
+- Intent UI の Toolbar / Toggle / ComboBox / NumberField / Drawer / Toast などのコンポーネント群を追加インストールし、既存 UI ファイルを最新のレジストリ実装へ更新。
 - 気づき/意思決定:
 - 困りごと/対応:
 
