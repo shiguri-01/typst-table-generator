@@ -1,6 +1,7 @@
 import { isDraft, original } from "immer";
 import { create } from "zustand";
 import { devtools, subscribeWithSelector } from "zustand/middleware";
+import type { NamedSet } from "zustand/middleware/devtools";
 import { immer } from "zustand/middleware/immer";
 import type {
   Cell,
@@ -244,275 +245,273 @@ function restoreSnapshot(
 export const useTableEditorStore = create<TableEditorState>()(
   subscribeWithSelector(
     devtools(
-      immer<TableEditorState>((set, get) => ({
-        ...initialState,
-        actions: {
-          load(model, options) {
-            const presetId = options?.presetId ?? get().presetId;
-            const presetResult = applyStylePreset(model, presetId);
-            set(
-              (state) => {
-                state.model = mergePresetStrokes(model, presetResult);
-                state.tableArgs = cloneTableArgs(presetResult.tableArgs);
-                state.presetId = presetId;
-                state.isDirty = false;
-                state.history = { past: [], future: [] };
-              },
-              false,
-              { type: "table-editor/load" },
-            );
-          },
-          setSelection(selection) {
-            set(
-              (state) => {
-                state.selection = {
-                  active: selection.active,
-                  range: selection.range
-                    ? normalizeRange(selection.range)
-                    : null,
-                };
-              },
-              false,
-              { type: "table-editor/setSelection" },
-            );
-          },
-          editCell(position, patch) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = patchCell(state.model, position, patch);
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/editCell" },
-            );
-          },
-          editCells(range, patch) {
-            if (!range) {
-              return;
-            }
-            set(
-              (state) => {
-                pushHistory(state);
-                const positions: TableCellPosition[] = [];
-                forEachCell(range, (position) => {
-                  positions.push(position);
-                });
-                let nextModel = state.model;
-                positions.forEach((position) => {
-                  nextModel = patchCell(nextModel, position, patch);
-                });
-                state.model = nextModel;
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/editCells" },
-            );
-          },
-          insertRow(at) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = insertRow(state.model, at);
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/insertRow" },
-            );
-          },
-          removeRows(indexes) {
-            const sorted = Array.from(new Set(indexes)).sort((a, b) => a - b);
-            if (sorted.length === 0) {
-              return;
-            }
-            set(
-              (state) => {
-                pushHistory(state);
-                let nextModel = state.model;
-                for (let index = sorted.length - 1; index >= 0; index -= 1) {
-                  nextModel = removeRow(nextModel, sorted[index]);
-                }
-                state.model = nextModel;
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/removeRows" },
-            );
-          },
-          insertColumn(at) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = insertColumn(state.model, at);
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/insertColumn" },
-            );
-          },
-          removeColumns(indexes) {
-            const sorted = Array.from(new Set(indexes)).sort((a, b) => a - b);
-            if (sorted.length === 0) {
-              return;
-            }
-            set(
-              (state) => {
-                pushHistory(state);
-                let nextModel = state.model;
-                for (let index = sorted.length - 1; index >= 0; index -= 1) {
-                  nextModel = removeColumn(nextModel, sorted[index]);
-                }
-                state.model = nextModel;
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/removeColumns" },
-            );
-          },
-          setHeaderRows(next) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = setHeaderRowsValue(state.model, next);
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/setHeaderRows" },
-            );
-          },
-          setCaption(text) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = setCaptionValue(state.model, text);
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/setCaption" },
-            );
-          },
-          updateColumnSpec(columnIndex, patch) {
-            set(
-              (state) => {
-                pushHistory(state);
-                state.model = updateColumnSpecValue(
-                  state.model,
-                  columnIndex,
-                  patch,
-                );
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/updateColumnSpec" },
-            );
-          },
-          updateStroke(kind, index, patch) {
-            set(
-              (state) => {
-                pushHistory(state);
-                if (kind === "row") {
-                  state.model = updateRowStroke(
+      immer<TableEditorState>((set, get) => {
+        const setState = set as NamedSet<TableEditorState>;
+        type DevtoolsAction = Parameters<NamedSet<TableEditorState>>[2];
+        const apply = (
+          recipe: (state: TableEditorState) => void,
+          action?: DevtoolsAction,
+        ) => {
+          setState(
+            (state) => {
+              recipe(state);
+              return state;
+            },
+            false,
+            action,
+          );
+        };
+        return {
+          ...initialState,
+          actions: {
+            load(model, options) {
+              const presetId = options?.presetId ?? get().presetId;
+              const presetResult = applyStylePreset(model, presetId);
+              apply(
+                (state) => {
+                  state.model = mergePresetStrokes(model, presetResult);
+                  state.tableArgs = cloneTableArgs(presetResult.tableArgs);
+                  state.presetId = presetId;
+                  state.isDirty = false;
+                  state.history = { past: [], future: [] };
+                },
+                { type: "table-editor/load" },
+              );
+            },
+            setSelection(selection) {
+              apply(
+                (state) => {
+                  state.selection = {
+                    active: selection.active,
+                    range: selection.range
+                      ? normalizeRange(selection.range)
+                      : null,
+                  };
+                },
+                { type: "table-editor/setSelection" },
+              );
+            },
+            editCell(position, patch) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = patchCell(state.model, position, patch);
+                  state.isDirty = true;
+                },
+                { type: "table-editor/editCell" },
+              );
+            },
+            editCells(range, patch) {
+              if (!range) {
+                return;
+              }
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  const positions: TableCellPosition[] = [];
+                  forEachCell(range, (position) => {
+                    positions.push(position);
+                  });
+                  let nextModel = state.model;
+                  positions.forEach((position) => {
+                    nextModel = patchCell(nextModel, position, patch);
+                  });
+                  state.model = nextModel;
+                  state.isDirty = true;
+                },
+                { type: "table-editor/editCells" },
+              );
+            },
+            insertRow(at) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = insertRow(state.model, at);
+                  state.isDirty = true;
+                },
+                { type: "table-editor/insertRow" },
+              );
+            },
+            removeRows(indexes) {
+              const sorted = Array.from(new Set(indexes)).sort((a, b) => a - b);
+              if (sorted.length === 0) {
+                return;
+              }
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  let nextModel = state.model;
+                  for (let index = sorted.length - 1; index >= 0; index -= 1) {
+                    nextModel = removeRow(nextModel, sorted[index]);
+                  }
+                  state.model = nextModel;
+                  state.isDirty = true;
+                },
+                { type: "table-editor/removeRows" },
+              );
+            },
+            insertColumn(at) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = insertColumn(state.model, at);
+                  state.isDirty = true;
+                },
+                { type: "table-editor/insertColumn" },
+              );
+            },
+            removeColumns(indexes) {
+              const sorted = Array.from(new Set(indexes)).sort((a, b) => a - b);
+              if (sorted.length === 0) {
+                return;
+              }
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  let nextModel = state.model;
+                  for (let index = sorted.length - 1; index >= 0; index -= 1) {
+                    nextModel = removeColumn(nextModel, sorted[index]);
+                  }
+                  state.model = nextModel;
+                  state.isDirty = true;
+                },
+                { type: "table-editor/removeColumns" },
+              );
+            },
+            setHeaderRows(next) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = setHeaderRowsValue(state.model, next);
+                  state.isDirty = true;
+                },
+                { type: "table-editor/setHeaderRows" },
+              );
+            },
+            setCaption(text) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = setCaptionValue(state.model, text);
+                  state.isDirty = true;
+                },
+                { type: "table-editor/setCaption" },
+              );
+            },
+            updateColumnSpec(columnIndex, patch) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  state.model = updateColumnSpecValue(
                     state.model,
-                    index,
-                    patch as RowStroke,
+                    columnIndex,
+                    patch,
                   );
-                } else {
-                  state.model = updateColumnStroke(
-                    state.model,
-                    index,
-                    patch as ColumnStroke,
-                  );
-                }
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/updateStroke" },
-            );
+                  state.isDirty = true;
+                },
+                { type: "table-editor/updateColumnSpec" },
+              );
+            },
+            updateStroke(kind, index, patch) {
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  if (kind === "row") {
+                    state.model = updateRowStroke(
+                      state.model,
+                      index,
+                      patch as RowStroke,
+                    );
+                  } else {
+                    state.model = updateColumnStroke(
+                      state.model,
+                      index,
+                      patch as ColumnStroke,
+                    );
+                  }
+                  state.isDirty = true;
+                },
+                { type: "table-editor/updateStroke" },
+              );
+            },
+            applyPreset(id) {
+              if (!STYLE_PRESETS[id]) {
+                return;
+              }
+              apply(
+                (state) => {
+                  pushHistory(state);
+                  const result = applyStylePreset(state.model, id);
+                  state.model = mergePresetStrokes(state.model, result);
+                  state.tableArgs = cloneTableArgs(result.tableArgs);
+                  state.presetId = id;
+                  state.isDirty = true;
+                },
+                { type: "table-editor/applyPreset" },
+              );
+            },
+            setModal(name, open) {
+              apply(
+                (state) => {
+                  state.modals[name] = open;
+                },
+                { type: "table-editor/setModal" },
+              );
+            },
+            setTableName(name) {
+              apply(
+                (state) => {
+                  state.tableName = name;
+                  state.isDirty = true;
+                },
+                { type: "table-editor/setTableName" },
+              );
+            },
+            setClipboardPreview(preview) {
+              apply(
+                (state) => {
+                  state.clipboardPreview = preview;
+                },
+                { type: "table-editor/setClipboardPreview" },
+              );
+            },
+            undo() {
+              apply(
+                (state) => {
+                  const previous = state.history.past.pop();
+                  if (!previous) {
+                    return;
+                  }
+                  state.history.future.push(captureSnapshot(state));
+                  restoreSnapshot(state, previous);
+                },
+                { type: "table-editor/undo" },
+              );
+            },
+            redo() {
+              apply(
+                (state) => {
+                  const next = state.history.future.pop();
+                  if (!next) {
+                    return;
+                  }
+                  state.history.past.push(captureSnapshot(state));
+                  restoreSnapshot(state, next);
+                },
+                { type: "table-editor/redo" },
+              );
+            },
+            markClean() {
+              apply(
+                (state) => {
+                  state.isDirty = false;
+                },
+                { type: "table-editor/markClean" },
+              );
+            },
           },
-          applyPreset(id) {
-            if (!STYLE_PRESETS[id]) {
-              return;
-            }
-            set(
-              (state) => {
-                pushHistory(state);
-                const result = applyStylePreset(state.model, id);
-                state.model = mergePresetStrokes(state.model, result);
-                state.tableArgs = cloneTableArgs(result.tableArgs);
-                state.presetId = id;
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/applyPreset" },
-            );
-          },
-          setModal(name, open) {
-            set(
-              (state) => {
-                state.modals[name] = open;
-              },
-              false,
-              { type: "table-editor/setModal" },
-            );
-          },
-          setTableName(name) {
-            set(
-              (state) => {
-                state.tableName = name;
-                state.isDirty = true;
-              },
-              false,
-              { type: "table-editor/setTableName" },
-            );
-          },
-          setClipboardPreview(preview) {
-            set(
-              (state) => {
-                state.clipboardPreview = preview;
-              },
-              false,
-              { type: "table-editor/setClipboardPreview" },
-            );
-          },
-          undo() {
-            set(
-              (state) => {
-                const previous = state.history.past.pop();
-                if (!previous) {
-                  return;
-                }
-                state.history.future.push(captureSnapshot(state));
-                restoreSnapshot(state, previous);
-              },
-              false,
-              { type: "table-editor/undo" },
-            );
-          },
-          redo() {
-            set(
-              (state) => {
-                const next = state.history.future.pop();
-                if (!next) {
-                  return;
-                }
-                state.history.past.push(captureSnapshot(state));
-                restoreSnapshot(state, next);
-              },
-              false,
-              { type: "table-editor/redo" },
-            );
-          },
-          markClean() {
-            set(
-              (state) => {
-                state.isDirty = false;
-              },
-              false,
-              { type: "table-editor/markClean" },
-            );
-          },
-        },
-      })),
+        };
+      }),
       {
         enabled: import.meta.env.DEV,
         name: "table-editor",

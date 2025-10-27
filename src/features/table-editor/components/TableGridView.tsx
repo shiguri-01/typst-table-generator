@@ -9,9 +9,12 @@ import {
   type Column,
   DynamicDataSheetGrid,
   keyColumn,
-  type Operation,
-  type SelectionWithId,
 } from "react-datasheet-grid";
+import type {
+  Operation,
+  SelectionWithId,
+  SimpleColumn,
+} from "react-datasheet-grid/dist/types";
 import type { Cell } from "@/lib/table";
 import { cn } from "@/lib/utils";
 import { useTableEditorStore } from "../store";
@@ -54,6 +57,13 @@ type TableSelectionRange = {
   start: { rowIndex: number; columnIndex: number };
   end: { rowIndex: number; columnIndex: number };
 };
+
+type KeyColumnData = {
+  key: string;
+  original: Partial<Column<Cell, unknown, string>>;
+};
+
+type GridColumn = Partial<Column<RowRecord, KeyColumnData, string>>;
 
 const rangesEqual = (
   left: TableSelectionRange | null,
@@ -99,6 +109,7 @@ export function TableGridView() {
   const actions = useTableEditorStore((state) => state.actions);
 
   const columnCount = rows[0]?.length ?? 0;
+  const disabledGutter: SimpleColumn<RowRecord, KeyColumnData> | false = false;
 
   const gridRows = useMemo(
     () => rows.map((row) => toRowRecord(row, columnCount)),
@@ -117,9 +128,8 @@ export function TableGridView() {
   }, [columnCount]);
 
   const cellColumn = useMemo(() => {
-    const component: CellComponent<RowRecord, { key: string }> = ({
+    const component: CellComponent<Cell, unknown> = ({
       rowData,
-      columnData,
       rowIndex,
       columnIndex,
       setRowData,
@@ -127,17 +137,14 @@ export function TableGridView() {
       focus,
       stopEditing,
     }) => {
-      const key =
-        (columnData?.key as string | undefined) ?? columnKey(columnIndex);
-      const cell = rowData[key] ?? EMPTY_CELL;
+      const cell = { ...EMPTY_CELL, ...rowData };
       const isHeader = rowIndex < headerRows;
 
       const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const nextRow: RowRecord = {
-          ...rowData,
-          [key]: { ...cell, text: event.target.value },
-        };
-        setRowData(nextRow);
+        setRowData({
+          ...cell,
+          text: event.target.value,
+        });
       };
 
       const alignClass =
@@ -179,7 +186,7 @@ export function TableGridView() {
       );
     };
 
-    const column: Partial<Column<RowRecord, { key: string }, string>> = {
+    const column: Partial<Column<Cell, unknown, string>> = {
       component,
       minWidth: 120,
       basis: 150,
@@ -190,15 +197,14 @@ export function TableGridView() {
     return column;
   }, [headerRows]);
 
-  const columns = useMemo(() => {
-    const baseColumns: Partial<Column<RowRecord, { key: string }, string>>[] =
-      [];
+  const columns = useMemo<GridColumn[]>(() => {
+    const baseColumns: GridColumn[] = [];
     for (let columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
       const key = columnKey(columnIndex);
       baseColumns.push({
         id: key,
         title: `Column ${columnIndex + 1}`,
-        ...keyColumn<RowRecord, string>(key, cellColumn),
+        ...(keyColumn<RowRecord, string>(key, cellColumn) as GridColumn),
       });
     }
     return baseColumns;
@@ -369,8 +375,7 @@ export function TableGridView() {
       columns={columns}
       headerRowHeight={40}
       rowHeight={40}
-      gutterColumn={false}
-      stickyRightColumn={false}
+      gutterColumn={disabledGutter}
       rowClassName={({ rowIndex }) =>
         rowIndex < headerRows ? "bg-muted/20" : undefined
       }

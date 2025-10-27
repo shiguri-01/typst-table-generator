@@ -31,6 +31,7 @@
   - DrawerTrigger を ButtonPrimitive ラップのまま使うと `<button>` の入れ子が発生して SSR が崩れるため、`buttonStyles` を直接適用して単一のボタンで実装。
   - `Textarea` に `minRows` を渡すと DOM 属性警告が出るので `rows` 指定へ変更。
   - Zustand の Immer ドラフトを `structuredClone` すると `DataCloneError` になるので、`cloneTableArgs` で Draft を元オブジェクトに戻してからクローンするよう修正。
+  - DataSheetGrid の `keyColumn` は内部的に `columnData.original` を付与するため、セルコンポーネントの型を `Cell` ベースに組み直しつつ、`set` ラッパー (`apply`) で devtools/immer 両対応するよう調整。
 
 ## Summary
 
@@ -38,6 +39,7 @@
 - `columnData` が未定義のケースでクラッシュしていた DataSheetGrid セル描画をフォールバック処理に置き換え、安全にセル編集を継続できるようにした。
 - `pnpm check` / `pnpm test` を再実行して退行がないことを確認。
 - 履歴スナップショット生成時に `structuredClone` が落ちる問題に対応し、Undo/Redo が例外なく動作するようにした。
+- `pnpm exec tsc --noEmit` で型チェックを追加実行し、Grid カラム定義と Zustand ミドルウェアが型的にも整合することを確認。
 
 ## Next (必要に応じて)
 

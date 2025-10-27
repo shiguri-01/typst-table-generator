@@ -12,7 +12,7 @@ import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import type { ChangeEvent, Key } from "react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import { NumberField } from "@/components/ui/number-field";
@@ -263,8 +263,10 @@ export function TableToolbar() {
       <ToolbarGroup className="items-center gap-2">
         <Menu>
           <MenuTrigger
-            intent="outline"
-            className="min-w-[8rem] justify-between"
+            className={`${buttonStyles({
+              intent: "outline",
+              size: "sm",
+            })} min-w-[8rem] justify-between`}
           >
             <span className="flex items-center gap-2">
               <AdjustmentsHorizontalIcon className="size-4" />
