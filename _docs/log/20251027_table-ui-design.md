@@ -18,9 +18,10 @@
   - TanStack Store は Signal ベースで精細な再レンダー制御が魅力だが、React 統合では hook ラッパーを自前で敷く必要があり、エコシステムがまだ限定的。
   - react-datasheet-grid との接続は、行配列と列定義を props で渡し、セル編集ハンドラで `updateCell` を呼ぶ形が自然。範囲選択やバッチ更新は `setState` のトランザクションが必要。
   - プロパティパネルは選択範囲単位で動作させるため、矩形選択の保持と tri-state UI をセットで設計する。
-  - 参考リンク: https://react-datasheet-grid.netlify.app/docs/features / https://zustand.docs.pmnd.rs/getting-started/introduction / https://zustand.docs.pmnd.rs/guides/devtools-integration / https://zustand.docs.pmnd.rs/guides/using-immer
+- 参考リンク: https://react-datasheet-grid.netlify.app/docs/features / https://zustand.docs.pmnd.rs/getting-started/introduction / https://zustand.docs.pmnd.rs/guides/devtools-integration / https://zustand.docs.pmnd.rs/guides/using-immer
   - DataSheetGrid の WAI-ARIA ロールはそのまま維持し、Typst 用ヘッダーラベルは `aria-description` や独自属性で補足する。列ラベル UI 自体はフォーカス可能なままにし、装飾要素だけ `aria-hidden` 指定する。
   - 列追加/削除が頻繁に起こるので `DynamicDataSheetGrid` を採用し、`columns` や `createRow` は `useMemo`/`useCallback` で固定する。Zustand の `useStore` セレクタを併用して再描画を局所化する（https://react-datasheet-grid.netlify.app/docs/performance/static-vs-dynamic）。
+  - Spec に残っていた `cite…` マーカーを通常のリンクへ差し替えて整合性を確保。
 - 気づき/意思決定:
   - 状態管理は Zustand を採用。React Hooks との親和性と既存ミドルウェア群で undo/redo, persist を段階的に導入しやすい。
   - Undo/Redo は `zustand/middleware` の `temporal` を利用し、バッチ編集を 1 アクションにまとめる。
@@ -32,6 +33,7 @@
 - Zustand を前提とした `TableEditorState` のストア形状と主要アクションを定義。
 - `/` ルートのレイアウト、react-datasheet-grid と Intent UI を用いた編集フロー、ツールバー・プロパティパネル・モーダルの責務を具体化。
 - 仕様書 `_docs/spec.md` に上記要件と操作フローを反映し、Spec change メモを追加。
+- Static vs dynamic のガイドに沿ったコンポーネント戦略と引用整備を完了。
 
 ## Next (必要に応じて)
 - Zustand ストアと TableEditorShell の実装。
@@ -44,4 +46,4 @@
 
 ## Pre-PR Checklist
 - [x] `_docs/spec.md`に必要な変更を反映済み（不要な場合もこの文章を確認したらチェック）
-- [ ] PR 本文にこのログへのリンクを含めることを確認
+- [x] PR 本文にこのログへのリンクを含めることを確認
