@@ -8,7 +8,7 @@
 
 ### 🎯 目的とスコープ
 
-@\_docs/spec/overview.md - プロジェトの目的、範囲、想定ユースケース
+@_docs/spec/overview.md - プロジェトの目的、範囲、想定ユースケース
 
 - 何を作るのか、何を作らないのか
 - 対象ユーザーと主要なユースケース
@@ -16,7 +16,7 @@
 
 ### 📊 データモデル
 
-@\_docs/spec/data-model.md - JSON モデル定義とフィールド仕様
+@_docs/spec/data-model.md - JSON モデル定義とフィールド仕様
 
 - `TableModel` 型定義
 - セル、行、列の構造
@@ -28,7 +28,7 @@
 
 ### 🎨 UI 設計
 
-@\_docs/spec/ui-design.md - UI/UX 仕様とレイアウト
+@_docs/spec/ui-design.md - UI/UX 仕様とレイアウト
 
 - ルート構成とレイアウト
 - react-datasheet-grid の統合
@@ -40,7 +40,7 @@
 
 ### 📤 入出力仕様
 
-@\_docs/spec/io-spec.md - Typst 出力、TSV ペースト、JSON 保存
+@_docs/spec/io-spec.md - Typst 出力、TSV ペースト、JSON 保存
 
 - Typst コード生成方針
 - TSV ペーストのアルゴリズム
@@ -49,7 +49,7 @@
 
 ### 🧪 テスト戦略
 
-@\_docs/spec/testing.md - テスト方針とセキュリティ
+@_docs/spec/testing.md - テスト方針とセキュリティ
 
 - 単体テスト、コンポーネントテスト
 - エラー処理とバリデーション
@@ -74,7 +74,7 @@
 
 ## 🤔 未決事項
 
-現在の未決事項は @\_docs/spec/data-model.md の末尾を参照してください。
+現在の未決事項は @_docs/spec/data-model.md の末尾を参照してください。
 
 ---
 

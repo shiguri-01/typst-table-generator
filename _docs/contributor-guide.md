@@ -69,5 +69,5 @@
 
 ## References
 
-- Intent UI guidance for LLMs and component usage: <https://intentui.com/llms.txt>
+- [Intent UI guidance for LLMs and component usage](https://intentui.com/llms.txt)
 - Explore other docs by using Context7 MCP Server.

@@ -13,7 +13,7 @@
 - Core features: row/column editing, header rows, caption, alignment, lightweight style presets, JSON save/load, Typst generation.
 - Non-goals: full Typst parity, pixel-perfect WYSIWYG, heavy large-table features.
 
-See @\_docs/contributor-guide.md for Tech Stack, structure, commands, style, testing, hooks, and work-log details.
+See @_docs/contributor-guide.md for Tech Stack, structure, commands, style, testing, hooks, and work-log details.
 
 ## Quick Start
 
@@ -21,13 +21,13 @@ See @\_docs/contributor-guide.md for Tech Stack, structure, commands, style, tes
 - Checks/Tests: `pnpm check`, `pnpm test`
 - Build/Preview: `pnpm build`, `pnpm serve`
 
-Details and extra commands: @\_docs/contributor-guide.md .
+Details and extra commands: @_docs/contributor-guide.md .
 
 ## Coding Style & Testing
 
 - Use Biome for lint/format; co-locate tests as `*.test.tsx/ts`.
 - Follow Intent UI + React ARIA patterns for a11y and interactions.
-  More: @\_docs/contributor-guide.md . For Intent UI usage guidance, see https://intentui.com/llms.txt.
+  More: @_docs/contributor-guide.md . For Intent UI usage guidance, see https://intentui.com/llms.txt.
 
 ## Commit & Pull Request Guidelines
 
@@ -39,7 +39,7 @@ Details and extra commands: @\_docs/contributor-guide.md .
 
 ## Architecture & Spec
 
-- @\_docs/spec/ contains the specification documents split by topic. See @\_docs/spec/README.md for the index.
+- @_docs/spec/ contains the specification documents split by topic. See @_docs/spec/README.md for the index.
 - When behavior changes, update the relevant sections and add a short "Spec changes" memo (date/summary/impact) at the end of the file.
 - Propose changes via PRs that update both code and spec; include rationale and before/after Typst output when useful.
 - References for Typst output:
@@ -48,8 +48,8 @@ Details and extra commands: @\_docs/contributor-guide.md .
 
 ## Workflow
 
-- **Context**: scan @README.md and @AGENTS.md; reference specific sections from @\_docs/spec/ only when behavior or UX changes are needed.
-  - Use @\_docs/spec/README.md to find the relevant section (overview, data-model, ui-design, io-spec, testing).
+- **Context**: scan @README.md and @AGENTS.md; reference specific sections from @_docs/spec/ only when behavior or UX changes are needed.
+  - Use @_docs/spec/README.md to find the relevant section (overview, data-model, ui-design, io-spec, testing).
   - Only load the specific files you need to avoid context bloat.
 - **Plan**: write 3–6 action steps; create `_docs/log/YYYYMMDD_<slug>.md` from the template (`_docs/log/_TEMPLATE.md`) and fill Purpose + TODO.
 - **Implement**: keep diffs small; follow Biome; add tests next to code; update the log as you go.

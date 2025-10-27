@@ -23,7 +23,7 @@
 2. プリセットの `tableArgs` があれば `table()` 呼び出しにマージ。
 3. `headerRows > 0` なら先頭行を `table.header(repeat: true, ...)` でラップ。
 4. 各セルは `[テキスト]` として出力し、`bold` なら `strong[...]`、`italic` なら `emph[...]` を重ねる。
-5. `strokes` を走査して `table.hline` / `table.vline` を追加。境界インデックスは @\_docs/spec/data-model.md の Stroke 仕様に従う。
+5. `strokes` を走査して `table.hline` / `table.vline` を追加。境界インデックスは @_docs/spec/data-model.md の Stroke 仕様に従う。
 6. `caption` があれば全体を `#figure(caption: [キャプション], ...)` で包む。
 
 ## TSV ペースト処理
