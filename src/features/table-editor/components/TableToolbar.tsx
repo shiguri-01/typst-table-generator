@@ -134,7 +134,8 @@ export function TableToolbar() {
   };
 
   const handleHeaderRowsChange = (value: number | null) => {
-    const next = Math.max(0, Math.min(rowCount, value ?? 0));
+    const normalized = Number.isFinite(value) ? Math.floor(value ?? 0) : 0;
+    const next = Math.max(0, Math.min(rowCount, normalized));
     actions.setHeaderRows(next);
   };
 
