@@ -173,5 +173,5 @@ type StylePreset = (model: TableModel) => PresetOutput;
 ## Spec changes
 
 > **Spec change (2025-10-26)** `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
-
+>
 > **Spec change (2025-10-26)** セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
