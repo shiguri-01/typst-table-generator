@@ -43,10 +43,9 @@
 
 ## Next (必要に応じて)
 
-- [ ] Inspector の残りセクション（列設定・ストローク編集 UI）を実装し、tri-state 表示を整理する。
-- [ ] ツールバーの整列/書式トグルをストアアクションへ接続し、Undo/Redo グルーピングを最適化する。
-- [ ] DataSheetGrid のショートカット/コンテキストメニュー仕様（Ctrl+Enter・Ctrl+B・Ctrl+I・Ctrl+Shift+H など）を実装する。
-- [ ] 新挙動に合わせて `_docs/spec/ui-design.md` を更新し、差分テストを追加する。
+- Inspector の残りセクション（列設定・ストローク編集 UI）を実装し、tri-state 表示を整理する。
+- ツールバーの整列/書式トグルをストアアクションへ接続し、Undo/Redo グルーピングを最適化する。
+- DataSheetGrid のショートカット/コンテキストメニュー仕様（Ctrl+Enter・Ctrl+B・Ctrl+I・Ctrl+Shift+H など）を実装する。
 
 ## Reflection (感想)
 
