@@ -207,7 +207,7 @@ type StylePreset = (model: TableModel) => PresetOutput;
 ### 8.2 エディタサーフェス（react-datasheet-grid）
 
 - `DataSheetGrid` を採用し、`value` にストアから得た `rows` を渡す。各セルは `{ text, bold, italic, align }` を編集対象とし、`columns` は動的に `model.columnSpecs.length` に合わせて生成する。
-- 列の本数やプロパティが編集で変化するため、グリッド本体は `DynamicDataSheetGrid` を利用する。`columns`／`createRow`／`duplicateRow` などの非プリミティブ props は `useMemo`／`useCallback` で安定化させ、Zustand のセレクタを用いて依存値を最小化する。`DynamicDataSheetGrid` 採用理由とメモ化要件はドキュメントの「Static vs dynamic」指針に従う。citeturn0view0
+- 列の本数やプロパティが編集で変化するため、グリッド本体は `DynamicDataSheetGrid` を利用する。`columns`／`createRow`／`duplicateRow` などの非プリミティブ props は `useMemo`／`useCallback` で安定化させ、Zustand のセレクタを用いて依存値を最小化する。`DynamicDataSheetGrid` 採用理由とメモ化要件は公式ドキュメントの「Static vs dynamic」ガイドに従う（[参考: Static vs dynamic](https://react-datasheet-grid.netlify.app/docs/performance/static-vs-dynamic)）。
 - セルレンダラーはカスタムで、Typst 出力におけるヘッダー行（`rowIndex < headerRows`）の背景を Intent UI の `Surface tone="muted"` で差し替える。DataSheetGrid が提供する WAI-ARIA ロール（`grid`/`row`/`gridcell`）はそのまま尊重し、ヘッダー表現は `data-ttg-header="true"` のようなカスタム属性と `aria-description` を併用して伝える。スクリーンリーダー追加情報は `aria-colindex` / `aria-rowindex` など、グリッド互換の属性で補足する。列ラベル UI は引き続きフォーカス起点として機能させ、視覚的な装飾やサブテキストだけを `aria-hidden` に限定する。
 - `onChange` イベントでは変更された行のみを検知し、該当セルに対して `updateCell` または `patchCell` を呼ぶ。まとめて編集された範囲は `batchUpdateCells` アクションで `immer` を使って一括適用する。
 - 選択状態は `onActiveCellChange` / `onSelectionChange` で受け取り、ストアの `selection` に同期する。複数セル選択時は矩形範囲を保持し、整列やスタイル操作を範囲単位で適用できるようにする。
