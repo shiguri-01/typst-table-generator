@@ -18,9 +18,9 @@
   - TanStack Store は Signal ベースで精細な再レンダー制御が魅力だが、React 統合では hook ラッパーを自前で敷く必要があり、エコシステムがまだ限定的。
   - react-datasheet-grid との接続は、行配列と列定義を props で渡し、セル編集ハンドラで `updateCell` を呼ぶ形が自然。範囲選択やバッチ更新は `setState` のトランザクションが必要。
   - プロパティパネルは選択範囲単位で動作させるため、矩形選択の保持と tri-state UI をセットで設計する。
-- 参考リンク: https://react-datasheet-grid.netlify.app/docs/features / https://zustand.docs.pmnd.rs/getting-started/introduction / https://zustand.docs.pmnd.rs/guides/devtools-integration / https://zustand.docs.pmnd.rs/guides/using-immer
+- 参考リンク: [react-datasheet-grid docs/features](https://react-datasheet-grid.netlify.app/docs/features) / [Zustand getting-started](https://zustand.docs.pmnd.rs/getting-started/introduction) / [Zustand devtools-integration](https://zustand.docs.pmnd.rs/guides/devtools-integration) / [Zustand using-immer](https://zustand.docs.pmnd.rs/guides/using-immer)
   - DataSheetGrid の WAI-ARIA ロールはそのまま維持し、Typst 用ヘッダーラベルは `aria-description` や独自属性で補足する。列ラベル UI 自体はフォーカス可能なままにし、装飾要素だけ `aria-hidden` 指定する。
-  - 列追加/削除が頻繁に起こるので `DynamicDataSheetGrid` を採用し、`columns` や `createRow` は `useMemo`/`useCallback` で固定する。Zustand の `useStore` セレクタを併用して再描画を局所化する（https://react-datasheet-grid.netlify.app/docs/performance/static-vs-dynamic）。
+  - 列追加/削除が頻繁に起こるので `DynamicDataSheetGrid` を採用し、`columns` や `createRow` は `useMemo`/`useCallback` で固定する。Zustand の `useStore` セレクタを併用して再描画を局所化する（[Static vs dynamic](https://react-datasheet-grid.netlify.app/docs/performance/static-vs-dynamic)）。
   - Spec に残っていた `cite…` マーカーを通常のリンクへ差し替えて整合性を確保。
 - 気づき/意思決定:
   - 状態管理は Zustand を採用。React Hooks との親和性と既存ミドルウェア群で undo/redo, persist を段階的に導入しやすい。
