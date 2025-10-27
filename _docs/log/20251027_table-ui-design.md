@@ -24,8 +24,8 @@
   - Spec に残っていた `cite…` マーカーを通常のリンクへ差し替えて整合性を確保。
 - 気づき/意思決定:
   - 状態管理は Zustand を採用。React Hooks との親和性と既存ミドルウェア群で undo/redo, persist を段階的に導入しやすい。
-  - Undo/Redo は `zustand/middleware` の `temporal` を利用し、バッチ編集を 1 アクションにまとめる。
-  - ストアは `immer` / `devtools` / `temporal` を組み合わせ、開発時は DevTools 名称を `table-editor` ネームスペースで統一する。
+  - Undo/Redo は当初 `zustand/middleware` の `temporal` を想定していたが、現在のバージョンではバッチ編集向け API が不足していたため、`pushHistory` ベースのスナップショット実装に切り替えた。DevTools 連携は `apply` ヘルパーでアクション名を維持。
+  - ストアは `immer` / `devtools` を基本とし、将来的に `temporal` を置き換える余地を残したまま `table-editor` ネームスペースで統一。
 - 困りごと/対応:
   - 特になし。
 
@@ -34,11 +34,12 @@
 - `/` ルートのレイアウト、react-datasheet-grid と Intent UI を用いた編集フロー、ツールバー・プロパティパネル・モーダルの責務を具体化。
 - 仕様書 `_docs/spec.md` に上記要件と操作フローを反映し、Spec change メモを追加。
 - Static vs dynamic のガイドに沿ったコンポーネント戦略と引用整備を完了。
+- Undo/Redo とスナップショット履歴は自前実装で運用しつつ、DevTools のアクションラベルを保持できるように設計を再整理。
 
 ## Next (必要に応じて)
-- Zustand ストアと TableEditorShell の実装。
-- react-datasheet-grid を使ったセル編集の連携実装と単体テスト整備。
-- JSON/Typst エクスポートモーダルの UI 実装。
+- Inspector まわりの tri-state UI 詳細とストローク編集フローの詰め。
+- DataSheetGrid のショートカット/コンテキストメニュー仕様を組み込んだ操作ガイド追記。
+- Undo グルーピングと履歴圧縮方針を仕様化（現実装と照合）。
 
 ## Reflection (感想)
 - モデル層が純粋関数で揃っているおかげで、UI 側のアクション定義をストア内メソッドに集約しやすいと再確認。
