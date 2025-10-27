@@ -51,7 +51,7 @@ Details and extra commands: @\_docs/contributor-guide.md .
 - **Context**: scan @README.md and @AGENTS.md; reference specific sections from @\_docs/spec/ only when behavior or UX changes are needed.
   - Use @\_docs/spec/README.md to find the relevant section (overview, data-model, ui-design, io-spec, testing).
   - Only load the specific files you need to avoid context bloat.
-- **Plan**: write 3–6 action steps; create `_docs/log/YYYYMMDD_<slug>.md` from the template 　(`_docs/log/_TEMPLATE.md`) and fill Purpose + TODO.
+- **Plan**: write 3–6 action steps; create `_docs/log/YYYYMMDD_<slug>.md` from the template (`_docs/log/_TEMPLATE.md`) and fill Purpose + TODO.
 - **Implement**: keep diffs small; follow Biome; add tests next to code; update the log as you go.
 - **Validate**: run `pnpm check`, `pnpm test`, `pnpm build` (when relevant).
 - **Spec/Docs**: update `_docs/spec/<relevant-file>.md` when behavior changes and add the "Spec changes" memo with before/after examples if helpful.
