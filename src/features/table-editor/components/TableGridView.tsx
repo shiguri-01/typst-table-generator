@@ -13,7 +13,6 @@ import {
 import type {
   Operation,
   SelectionWithId,
-  SimpleColumn,
 } from "react-datasheet-grid/dist/types";
 import type { Cell } from "@/lib/table";
 import { cn } from "@/lib/utils";
@@ -109,7 +108,6 @@ export function TableGridView() {
   const actions = useTableEditorStore((state) => state.actions);
 
   const columnCount = rows[0]?.length ?? 0;
-  const disabledGutter: SimpleColumn<RowRecord, KeyColumnData> | false = false;
 
   const gridRows = useMemo(
     () => rows.map((row) => toRowRecord(row, columnCount)),
@@ -375,7 +373,6 @@ export function TableGridView() {
       columns={columns}
       headerRowHeight={40}
       rowHeight={40}
-      gutterColumn={disabledGutter}
       rowClassName={({ rowIndex }) =>
         rowIndex < headerRows ? "bg-muted/20" : undefined
       }
@@ -383,6 +380,7 @@ export function TableGridView() {
       duplicateRow={({ rowData }) => ({ ...rowData })}
       onActiveCellChange={handleActiveCellChange}
       onSelectionChange={handleSelectionChange}
+      addRowsComponent={false}
     />
   );
 }
