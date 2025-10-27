@@ -1,3 +1,4 @@
+import { isDraft, original } from "immer";
 import { create } from "zustand";
 import { devtools, subscribeWithSelector } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -203,10 +204,15 @@ function cloneTableArgs(args?: TableArguments): TableArguments {
   if (!args) {
     return {};
   }
+  const source = isDraft(args) ? (original(args) ?? args) : args;
   if (typeof globalThis.structuredClone === "function") {
-    return globalThis.structuredClone(args);
+    try {
+      return globalThis.structuredClone(source);
+    } catch (_error) {
+      // structuredClone can throw for unsupported values; fall back to JSON clone.
+    }
   }
-  return JSON.parse(JSON.stringify(args)) as TableArguments;
+  return JSON.parse(JSON.stringify(source)) as TableArguments;
 }
 
 function captureSnapshot(state: TableEditorState): TableSnapshot {

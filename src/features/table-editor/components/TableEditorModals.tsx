@@ -123,7 +123,7 @@ export function TableEditorModals() {
                   setJsonInput(event.target.value);
                   setJsonError(null);
                 }}
-                minRows={8}
+                rows={8}
                 placeholder='{"rows":[["A","B"]]}'
                 aria-label="Table JSON"
               />

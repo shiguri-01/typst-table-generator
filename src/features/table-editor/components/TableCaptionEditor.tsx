@@ -25,7 +25,7 @@ export function TableCaptionEditor() {
         onChange={handleChange}
         placeholder="Describe your table for Typst figure output…"
         aria-label="Table caption"
-        minRows={2}
+        rows={2}
       />
     </div>
   );

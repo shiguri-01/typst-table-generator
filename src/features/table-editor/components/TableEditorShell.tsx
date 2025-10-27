@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonStyles } from "@/components/ui/button";
 import {
   Drawer,
   DrawerBody,
@@ -51,10 +51,10 @@ export function TableEditorShell({
       {!isDesktop && (
         <div className="flex justify-end">
           <Drawer isOpen={isInspectorOpen} onOpenChange={setInspectorOpen}>
-            <DrawerTrigger asChild>
-              <Button size="sm" intent="outline">
-                Open inspector
-              </Button>
+            <DrawerTrigger
+              className={buttonStyles({ intent: "outline", size: "sm" })}
+            >
+              Open inspector
             </DrawerTrigger>
             <DrawerContent side="bottom" notch className="pb-4">
               <DrawerHeader className="pb-2">

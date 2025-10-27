@@ -127,7 +127,8 @@ export function TableGridView() {
       focus,
       stopEditing,
     }) => {
-      const key = columnData.key;
+      const key =
+        (columnData?.key as string | undefined) ?? columnKey(columnIndex);
       const cell = rowData[key] ?? EMPTY_CELL;
       const isHeader = rowIndex < headerRows;
 

@@ -14,6 +14,7 @@
 - [ ] プロパティパネルとスタイル編集 UI を実装する
 - [x] JSON/Typst モーダルとトースト通知を実装する
 - [x] テスト・lint を実行し、仕様とログを更新する
+- [x] SSR 警告と Drawer トリガーの入れ子ボタン問題を解消する
 
 ## Notes (随時追記)
 
@@ -27,10 +28,16 @@
 - Typst エクスポート/JSON インポートのモーダルとトースト通知を実装し、コピー・ダウンロード・JSON 検証エラーハンドリングを整備。
 - 気づき/意思決定:
 - 困りごと/対応:
+  - DrawerTrigger を ButtonPrimitive ラップのまま使うと `<button>` の入れ子が発生して SSR が崩れるため、`buttonStyles` を直接適用して単一のボタンで実装。
+  - `Textarea` に `minRows` を渡すと DOM 属性警告が出るので `rows` 指定へ変更。
+  - Zustand の Immer ドラフトを `structuredClone` すると `DataCloneError` になるので、`cloneTableArgs` で Draft を元オブジェクトに戻してからクローンするよう修正。
 
 ## Summary
 
-今回の変更の要点と影響範囲。
+- SSR とブラウザの警告になっていた `minRows` 属性と DrawerTrigger/ボタンの入れ子問題を解消し、クライアント初期化時のハイドレーションエラーを防止。
+- `columnData` が未定義のケースでクラッシュしていた DataSheetGrid セル描画をフォールバック処理に置き換え、安全にセル編集を継続できるようにした。
+- `pnpm check` / `pnpm test` を再実行して退行がないことを確認。
+- 履歴スナップショット生成時に `structuredClone` が落ちる問題に対応し、Undo/Redo が例外なく動作するようにした。
 
 ## Next (必要に応じて)
 
@@ -38,7 +45,7 @@
 
 ## Reflection (感想)
 
-感じたこと、学び、気づきなどを短く。
+React Aria コンポーネントは asChild まわりの相性に注意が必要と再確認。要素ツリーを簡単に保つのが一番安全。
 
 ## Pre-PR Checklist
 
