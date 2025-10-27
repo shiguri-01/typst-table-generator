@@ -1,14 +1,14 @@
 "use client";
 
 import {
-  ArrowPathRoundedSquareIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-  MinusIcon,
-  PlusIcon,
-  Squares2X2Icon,
-} from "@heroicons/react/20/solid";
-import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
+  IconAdjustmentsHorizontal,
+  IconArrowBackUp,
+  IconArrowForwardUp,
+  IconCrosshair,
+  IconMinus,
+  IconPlus,
+  IconRefresh,
+} from "@tabler/icons-react";
 import type { ChangeEvent, Key } from "react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
@@ -187,7 +187,7 @@ export function TableToolbar() {
 
       <ToolbarGroup className="items-center gap-1">
         <Button intent="outline" size="sm" onPress={handleInsertRow}>
-          <PlusIcon className="size-4" />
+          <IconPlus className="size-4" />
           Row
         </Button>
         <Button
@@ -196,11 +196,11 @@ export function TableToolbar() {
           isDisabled={selectedRows.length === 0}
           onPress={handleRemoveRows}
         >
-          <MinusIcon className="size-4" />
+          <IconMinus className="size-4" />
           Row
         </Button>
         <Button intent="outline" size="sm" onPress={handleInsertColumn}>
-          <PlusIcon className="size-4" />
+          <IconPlus className="size-4" />
           Col
         </Button>
         <Button
@@ -209,7 +209,7 @@ export function TableToolbar() {
           isDisabled={selectedColumns.length === 0}
           onPress={handleRemoveColumns}
         >
-          <MinusIcon className="size-4" />
+          <IconMinus className="size-4" />
           Col
         </Button>
       </ToolbarGroup>
@@ -224,7 +224,7 @@ export function TableToolbar() {
           onPress={actions.undo}
           aria-label="Undo"
         >
-          <ArrowUturnLeftIcon className="size-4" />
+          <IconArrowBackUp className="size-4" />
         </Button>
         <Button
           intent="outline"
@@ -233,7 +233,7 @@ export function TableToolbar() {
           onPress={actions.redo}
           aria-label="Redo"
         >
-          <ArrowUturnRightIcon className="size-4" />
+          <IconArrowForwardUp className="size-4" />
         </Button>
         <Button
           intent="outline"
@@ -241,7 +241,7 @@ export function TableToolbar() {
           onPress={() => actions.setSelection({ active: null, range: null })}
           aria-label="Clear selection"
         >
-          <Squares2X2Icon className="size-4" />
+          <IconCrosshair className="size-4" />
         </Button>
       </ToolbarGroup>
 
@@ -270,7 +270,7 @@ export function TableToolbar() {
             })} min-w-[8rem] justify-between`}
           >
             <span className="flex items-center gap-2">
-              <AdjustmentsHorizontalIcon className="size-4" />
+              <IconAdjustmentsHorizontal className="size-4" />
               Export
             </span>
           </MenuTrigger>
@@ -281,7 +281,7 @@ export function TableToolbar() {
           </MenuContent>
         </Menu>
         <Button intent="secondary" onPress={handleExportModal}>
-          <ArrowPathRoundedSquareIcon className="mr-2 size-4" />
+          <IconRefresh className="mr-2 size-4" />
           Generate Typst
         </Button>
       </ToolbarGroup>

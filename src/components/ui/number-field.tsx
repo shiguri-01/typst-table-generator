@@ -1,4 +1,4 @@
-import { MinusIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
 import {
   Button,
   type ButtonProps,
@@ -57,9 +57,9 @@ const StepperButton = ({
       {...props}
     >
       {slot === "increment" ? (
-        <PlusIcon data-slot="stepper-icon" />
+        <IconPlus data-slot="stepper-icon" />
       ) : (
-        <MinusIcon data-slot="stepper-icon" />
+        <IconMinus data-slot="stepper-icon" />
       )}
     </Button>
   );

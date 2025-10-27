@@ -7,7 +7,7 @@
 - Build/Dev: Vite 7, `@vitejs/plugin-react`, `vite-tsconfig-paths`.
 - Framework/Routing: React 19, TanStack Router (+ plugin, React Start, SSR query utils).
 - Styling/UI: Intent UI components with Tailwind CSS v4, `tailwind-merge`, `tailwindcss-react-aria-components` (built on React ARIA). Follow React ARIA patterns and a11y conventions.
-- Icons: `lucide-react`, `@tabler/icons-react`.
+- Icons: `@tabler/icons-react`.
 - Testing: Vitest 3 + Testing Library (`@testing-library/react`, `jsdom`).
 - Lint/Format: Biome 2.2 via Lefthook (staged-only).
 

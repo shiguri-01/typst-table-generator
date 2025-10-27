@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { IconCheck, IconChevronRight } from "@tabler/icons-react";
 import type {
   ButtonProps,
   MenuItemProps as MenuItemPrimitiveProps,
@@ -145,13 +145,13 @@ const MenuItem = ({ className, intent, children, ...props }: MenuItemProps) => {
               )}
             >
               {values.selectionMode === "single" && (
-                <CheckIcon
+                <IconCheck
                   className="-mx-0.5 mr-2 size-4"
                   data-slot="check-indicator"
                 />
               )}
               {values.selectionMode === "multiple" && (
-                <CheckIcon
+                <IconCheck
                   className="-mx-0.5 mr-2 size-4"
                   data-slot="check-indicator"
                 />
@@ -162,7 +162,7 @@ const MenuItem = ({ className, intent, children, ...props }: MenuItemProps) => {
           {typeof children === "function" ? children(values) : children}
 
           {values.hasSubmenu && (
-            <ChevronRightIcon
+            <IconChevronRight
               data-slot="chevron"
               className="absolute right-2 size-3.5"
             />
