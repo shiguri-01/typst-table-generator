@@ -3,16 +3,20 @@ import { describe, expect, it } from "vitest";
 import type { Cell } from "./cell";
 import {
   createEmptyTable,
+  dimensions,
   insertColumn,
   insertRow,
   isInBounds,
   removeColumn,
   removeRow,
-  setCellAlign,
-  setCellBold,
-  setCellContent,
-  setCellItalic,
   type Table,
+  withCellAlign,
+  withCellBold,
+  withCellContent,
+  withCellItalic,
+  withColumnAlign,
+  withColumnStroke,
+  withRowStroke,
 } from "./table";
 
 const makeTable = (rows: Cell[][], overrides: Partial<Table> = {}): Table => {
@@ -141,7 +145,6 @@ describe("table helpers", () => {
         [{ content: "d" }, { content: "e" }, { content: "f" }],
       ],
       {
-        columnSpecs: [{ width: "auto" }, { width: 12 }, { width: 24 }],
         strokes: {
           row: [false, false, false],
           column: [false, true, false, true],
@@ -152,7 +155,6 @@ describe("table helpers", () => {
     const updated = removeColumn(table, 1);
 
     expect(updated.rows[0]).toEqual([{ content: "a" }, { content: "c" }]);
-    expect(updated.columnSpecs).toEqual([{ width: "auto" }, { width: 24 }]);
     expect(updated.strokes.column).toEqual([false, false, true]);
   });
 
@@ -167,33 +169,33 @@ describe("table helpers", () => {
   it("updates a cell using direct values and updater functions", () => {
     const table = createEmptyTable(2, 2);
 
-    const withContent = setCellContent(table, { row: 1, column: 1 }, "value");
+    const withContent = withCellContent(table, { row: 1, column: 1 }, "value");
     expect(withContent.rows[1][1].content).toBe("value");
     expect(table.rows[1][1].content).toBe("");
 
-    const withAlign = setCellAlign(withContent, { row: 1, column: 1 }, () => ({
+    const withAlign = withCellAlign(withContent, { row: 1, column: 1 }, () => ({
       horizontal: "right",
     }));
     expect(withAlign.rows[1][1].align).toEqual({ horizontal: "right" });
 
-    const withBold = setCellBold(
+    const withBold = withCellBold(
       withAlign,
       { row: 1, column: 1 },
       (prev) => !prev,
     );
     expect(withBold.rows[1][1].bold).toBe(true);
 
-    const withItalic = setCellItalic(withBold, { row: 1, column: 1 }, true);
+    const withItalic = withCellItalic(withBold, { row: 1, column: 1 }, true);
     expect(withItalic.rows[1][1].italic).toBe(true);
   });
 
   it("ignores cell updates when the position is out of bounds", () => {
     const table = createEmptyTable(1, 1);
 
-    const updatedContent = setCellContent(table, { row: -1, column: 0 }, "x");
+    const updatedContent = withCellContent(table, { row: -1, column: 0 }, "x");
     expect(updatedContent).toBe(table);
 
-    const updatedAlign = setCellAlign(table, { row: 0, column: 5 }, () => ({
+    const updatedAlign = withCellAlign(table, { row: 0, column: 5 }, () => ({
       horizontal: "center",
     }));
     expect(updatedAlign).toBe(table);
@@ -205,5 +207,62 @@ describe("table helpers", () => {
     expect(isInBounds(table, { row: 0, column: 0 })).toBe(true);
     expect(isInBounds(table, { row: 1, column: 0 })).toBe(false);
     expect(isInBounds(table, { row: 0, column: -1 })).toBe(false);
+  });
+
+  it("sets per-column align and clears cell overrides with withColumnAlign", () => {
+    const table = createEmptyTable(2, 2);
+
+    // set a cell-level override in column 1
+    const withOverride = withCellAlign(
+      table,
+      { row: 0, column: 1 },
+      { horizontal: "right" },
+    );
+
+    const updated = withColumnAlign(withOverride, 1, { horizontal: "center" });
+
+    // column spec updated
+    expect(updated.columnSpecs[1].align).toEqual({ horizontal: "center" });
+
+    // cell-level overrides in that column are cleared
+    expect(updated.rows[0][1].align).toBeUndefined();
+    expect(updated.rows[1][1].align).toBeUndefined();
+
+    // other column remains untouched
+    expect(updated.columnSpecs[0].align).toBeUndefined();
+  });
+
+  it("returns current dimensions of the table", () => {
+    const table = createEmptyTable(3, 4);
+    expect(dimensions(table)).toEqual({ rows: 3, columns: 4 });
+  });
+
+  it("updates row stroke boundary immutably and supports updater function", () => {
+    const table = createEmptyTable(2, 2); // strokes.row length = 3
+
+    const t1 = withRowStroke(table, 1, true);
+    expect(t1.strokes.row).toEqual([false, true, false]);
+    // updater toggles
+    const t2 = withRowStroke(t1, 1, (prev) => !prev);
+    expect(t2.strokes.row).toEqual([false, false, false]);
+    // out of range is no-op
+    const t3 = withRowStroke(t2, 99, true);
+    expect(t3).toBe(t2);
+  });
+
+  it("updates column stroke boundary immutably and supports updater function", () => {
+    const table = createEmptyTable(1, 3); // strokes.column length = 4
+
+    const t1 = withColumnStroke(table, 0, true);
+    expect(t1.strokes.column).toEqual([true, false, false, false]);
+    // updater toggles
+    const t2 = withColumnStroke(t1, 0, (prev) => !prev);
+    expect(t2.strokes.column).toEqual([false, false, false, false]);
+    // last boundary
+    const t3 = withColumnStroke(t2, 3, true);
+    expect(t3.strokes.column).toEqual([false, false, false, true]);
+    // out of range is no-op
+    const t4 = withColumnStroke(t3, -1, true);
+    expect(t4).toBe(t3);
   });
 });

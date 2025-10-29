@@ -1,3 +1,4 @@
+import type { Align } from "../alignment";
 import { type Cell, createEmptyCell } from "./cell";
 import { type ColumnSpec, DEFAULT_COLUMN_SPEC } from "./column";
 import { createEmptyRow, normalizeRowLength, type Row } from "./row";
@@ -48,18 +49,22 @@ export const createEmptyTable = (numRows: number, numCols: number): Table => {
   };
 };
 
+/** Clamp/normalize an insertion/removal index to a valid boundary. */
 const resolveIndex = (length: number, atIndex?: number): number => {
   if (atIndex === undefined) return length; // 末尾
   if (atIndex < 0) return Math.max(0, length + 1 + atIndex); // -1 で末尾、-length-1 で 0
   return Math.max(0, Math.min(atIndex, length));
 };
 
+/** Resolve a row insertion/removal index for {@link Table}. */
 const resolveRowIndex = (table: Table, atIndex?: number) =>
   resolveIndex(table.rows.length, atIndex);
 
+/** Resolve a column insertion/removal index for {@link ColumnSpec} list. */
 const resolveColumnIndex = (specs: ColumnSpec[], atIndex?: number) =>
   resolveIndex(specs.length, atIndex);
 
+/** Increment headerRows when inserting at or above the header region. */
 const bumpHeaderOnInsertRow = (
   headerRows: number | undefined,
   insertAt: number,
@@ -106,6 +111,7 @@ export const insertRow = (
   };
 };
 
+/** Decrement headerRows when removing from within the header region. */
 const bumpHeaderOnRemoveRow = (
   headerRows: number | undefined,
   removeAt: number,
@@ -248,18 +254,21 @@ export const removeColumn = (table: Table, atIndex: number): Table => {
   };
 };
 
+const isRowInBounds = (table: Table, row: number): boolean => {
+  return row >= 0 && row < table.rows.length;
+};
+
+const isColumnInBounds = (table: Table, column: number): boolean => {
+  return column >= 0 && column < table.columnSpecs.length;
+};
+
 /** Test whether a position is inside the table bounds. */
 export const isInBounds = (
   table: Table,
   pos: { row: number; column: number },
 ): boolean => {
   const { row, column } = pos;
-  return (
-    row >= 0 &&
-    row < table.rows.length &&
-    column >= 0 &&
-    column < table.columnSpecs.length
-  );
+  return isRowInBounds(table, row) && isColumnInBounds(table, column);
 };
 
 /** Get current table dimensions (rows/columns). */
@@ -270,4 +279,182 @@ export const dimensions = (table: Table): { rows: number; columns: number } => {
   };
 };
 
-// TODO: CellやColumnSpecの編集関数
+/**
+ * Helper to update a single cell field.
+ *
+ * Accepts either a direct value or an updater function that receives the
+ * previous value. Returns the same table if the position is out of bounds.
+ */
+const withCellField = <K extends keyof Cell>(
+  table: Table,
+  pos: { row: number; column: number },
+  field: K,
+  value: Cell[K] | ((prev: Cell[K]) => Cell[K]),
+): Table => {
+  if (!isInBounds(table, pos)) return table;
+
+  const { row, column } = pos;
+
+  const prevCell = table.rows[row][column];
+  const newValue = typeof value === "function" ? value(prevCell[field]) : value;
+  const newCell: Cell = {
+    ...prevCell,
+    [field]: newValue,
+  };
+
+  return {
+    ...table,
+    rows: table.rows.map((r, rowIndex) =>
+      rowIndex === row
+        ? r.map((c, colIndex) => (colIndex === column ? newCell : c))
+        : r,
+    ),
+  };
+};
+
+/**
+ * Update a cell's `content`.
+ *
+ * @param content - New string or updater `(prev) => next`.
+ */
+export const withCellContent = (
+  table: Table,
+  pos: { row: number; column: number },
+  content: string | ((prev: string) => string),
+) => withCellField(table, pos, "content", content);
+
+/**
+ * Update a cell's `align`.
+ *
+ * @param align - New {@link Align} or updater.
+ */
+export const withCellAlign = (
+  table: Table,
+  pos: { row: number; column: number },
+  align: Align | ((prev: Align | undefined) => Align | undefined),
+) => withCellField(table, pos, "align", align);
+
+/** Update a cell's `bold` flag. */
+export const withCellBold = (
+  table: Table,
+  pos: { row: number; column: number },
+  bold: boolean | ((prev: boolean | undefined) => boolean | undefined),
+) => withCellField(table, pos, "bold", bold);
+
+/** Update a cell's `italic` flag. */
+export const withCellItalic = (
+  table: Table,
+  pos: { row: number; column: number },
+  italic: boolean | ((prev: boolean | undefined) => boolean | undefined),
+) => withCellField(table, pos, "italic", italic);
+
+/**
+ * Update a column spec at index.
+ *
+ * Accepts either a full replacement spec or an updater function.
+ */
+const withColumnSpec = (
+  table: Table,
+  columnIndex: number,
+  spec: ColumnSpec | ((prev: ColumnSpec) => ColumnSpec),
+): Table => {
+  if (!isColumnInBounds(table, columnIndex)) return table;
+
+  const prevSpec = table.columnSpecs[columnIndex];
+  const newSpec = typeof spec === "function" ? spec(prevSpec) : spec;
+
+  return {
+    ...table,
+    columnSpecs: table.columnSpecs.map((s, colIndex) =>
+      colIndex === columnIndex ? newSpec : s,
+    ),
+  };
+};
+
+/** Set per-column default alignment and clear cell-level overrides in that column. */
+export const withColumnAlign = (
+  table: Table,
+  columnIndex: number,
+  align: Align,
+): Table => {
+  const newTable = withColumnSpec(table, columnIndex, {
+    ...table.columnSpecs[columnIndex],
+    align,
+  });
+
+  // セルごとのalign設定をクリアする
+  const newRows = newTable.rows.map((row) =>
+    row.map((cell, colIndex) =>
+      colIndex === columnIndex ? { ...cell, align: undefined } : cell,
+    ),
+  );
+
+  return {
+    ...newTable,
+    rows: newRows,
+  };
+};
+
+/** Test whether a row boundary index is valid (0..rows.length). */
+const isRowBoundaryInBounds = (table: Table, y: number): boolean => {
+  return y >= 0 && y <= table.rows.length;
+};
+
+/** Test whether a column boundary index is valid (0..columns). */
+const isColumnBoundaryInBounds = (table: Table, x: number): boolean => {
+  return x >= 0 && x <= table.columnSpecs.length;
+};
+
+/**
+ * Update a horizontal stroke boundary.
+ *
+ * @param y - Row boundary index (0..rows.length)
+ * @param value - Boolean or updater function `(prev) => next`.
+ */
+export const withRowStroke = (
+  table: Table,
+  y: number,
+  value: boolean | ((prev: boolean) => boolean),
+): Table => {
+  if (!isRowBoundaryInBounds(table, y)) return table;
+  const prev = table.strokes.row[y];
+  const next =
+    typeof value === "function"
+      ? (value as (p: boolean) => boolean)(prev)
+      : value;
+  if (next === prev) return table;
+  return {
+    ...table,
+    strokes: {
+      ...table.strokes,
+      row: table.strokes.row.map((v, i) => (i === y ? next : v)),
+    },
+  };
+};
+
+/**
+ * Update a vertical stroke boundary.
+ *
+ * @param x - Column boundary index (0..columns)
+ * @param value - Boolean or updater function `(prev) => next`.
+ */
+export const withColumnStroke = (
+  table: Table,
+  x: number,
+  value: boolean | ((prev: boolean) => boolean),
+): Table => {
+  if (!isColumnBoundaryInBounds(table, x)) return table;
+  const prev = table.strokes.column[x];
+  const next =
+    typeof value === "function"
+      ? (value as (p: boolean) => boolean)(prev)
+      : value;
+  if (next === prev) return table;
+  return {
+    ...table,
+    strokes: {
+      ...table.strokes,
+      column: table.strokes.column.map((v, i) => (i === x ? next : v)),
+    },
+  };
+};
