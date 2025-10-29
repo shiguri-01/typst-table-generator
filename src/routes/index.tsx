@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TableEditorRoute } from "@/features/table-editor/route";
 
-export const Route = createFileRoute("/")({ component: App });
-
-function App() {
-  return <div>top page</div>;
-}
+export const Route = createFileRoute("/")({
+  component: TableEditorRoute,
+});
