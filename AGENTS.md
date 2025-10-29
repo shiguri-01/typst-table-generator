@@ -39,7 +39,9 @@ Details and extra commands: @_docs/contributor-guide.md .
 
 ## Architecture & Spec
 
-- @_docs/spec/ contains the specification documents split by topic. See @_docs/spec/README.md for the index.
+- Architecture docs　( @_docs/architecture.md ): overall structure, folder guide
+- Spec docs　( @_docs/spec/ ): application specs
+  - See @_docs/spec/README.md for the index and relevant sections.
 - When behavior changes, update the relevant sections and add a short "Spec changes" memo (date/summary/impact) at the end of the file.
 - Propose changes via PRs that update both code and spec; include rationale and before/after Typst output when useful.
 - References for Typst output:

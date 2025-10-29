@@ -13,10 +13,7 @@
 
 ## Project Structure
 
-- `src/` — app code. Routes in `src/routes/`; shared utils in `src/lib/`; styles in `src/styles.css`.
-- `public/` — static assets.
-- `_docs/` — documentation and work logs (`_docs/spec/` and `_docs/log/`).
-- Generated: `src/routeTree.gen.ts` (do not edit).
+@_docs/architecture.md
 
 ## Commands
 
@@ -60,8 +57,9 @@
 
 ## Architecture & Spec
 
-- Source of truth: @_docs/spec/ (split into multiple files by topic).
-- See @_docs/spec/README.md for the index and relevant sections.
+- Architecture docs　( @_docs/architecture.md ): overall structure, folder guide
+- Spec docs　( @_docs/spec/ ): application specs
+  - See @_docs/spec/README.md for the index and relevant sections.
 - Update the relevant sections when behavior changes, and add a short "Spec changes" memo (date/summary/impact) with before/after Typst examples when relevant.
 - References for Typst output:
   - Typst Tables Guide: <https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md>
