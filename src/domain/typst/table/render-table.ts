@@ -216,8 +216,8 @@ export function renderTable(
 
   // 縦線
   if (!allVLines) {
-    table.strokes.column.forEach((useStroke, i) => {
-      if (useStroke) {
+    table.strokes.column.forEach((useLine, i) => {
+      if (useLine) {
         contentParts.push(renderVline(i));
       }
     });
