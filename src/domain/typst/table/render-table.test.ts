@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Cell } from "./cell";
 import { renderCell, renderTable } from "./render-table";
-import { createEmptyTable } from "./table";
+import {
+  createEmptyTable,
+  withCellBold,
+  withCellContent,
+  withCellItalic,
+  withColumnAlign,
+  withColumnStroke,
+  withRowStroke,
+} from "./table";
 
 describe("formatCell", () => {
   const createCell = (overrides: Partial<Cell> = {}): Cell => ({
@@ -74,22 +82,25 @@ describe("formatCell", () => {
 
 describe("formatTable (domain/typst)", () => {
   function mk(rows: number, cols: number) {
-    const t = createEmptyTable(rows, cols);
+    let t = createEmptyTable(rows, cols);
     for (let r = 0; r < rows; r += 1) {
       for (let c = 0; c < cols; c += 1) {
-        t.rows[r][c].content = `R${r}C${c}`;
+        t = withCellContent(t, { row: r, column: c }, `R${r}C${c}`);
       }
     }
     return t;
   }
 
   it("places hlines where they visually appear and vlines at the end", () => {
-    const t = mk(3, 2);
-    t.headerRows = 1;
-    // Outer frame and header separator
-    t.strokes.row = [true, true, false, true]; // y:0,1,3
-    // Left/right only (for 2 columns: boundaries are x:0..2)
-    t.strokes.column = [true, false, true]; // x:0,2
+    let t = mk(3, 2);
+    t = { ...t, headerRows: 1 };
+    // Outer frame and header separator (y:0,1,3)
+    t = withRowStroke(t, 0, true);
+    t = withRowStroke(t, 1, true);
+    t = withRowStroke(t, 3, true);
+    // Left/right only (x:0,2)
+    t = withColumnStroke(t, 0, true);
+    t = withColumnStroke(t, 2, true);
 
     const out = renderTable(t, {});
 
@@ -113,10 +124,11 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("compacts a full grid into stroke: 1pt without explicit lines", () => {
-    const t = mk(2, 2);
-    t.headerRows = 1;
-    t.strokes.row = [true, true, true];
-    t.strokes.column = [true, true, true];
+    let t = mk(2, 2);
+    t = { ...t, headerRows: 1 };
+    // set all boundaries true
+    for (let y = 0; y <= 2; y += 1) t = withRowStroke(t, y, true);
+    for (let x = 0; x <= 2; x += 1) t = withColumnStroke(t, x, true);
 
     const out = renderTable(t);
     expect(out).toContain("stroke: 1pt");
@@ -132,10 +144,10 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("renders bold/italic and escapes inline markers", () => {
-    const t = mk(2, 2);
-    t.rows[0][1].bold = true;
-    t.rows[1][0].italic = true;
-    t.rows[1][1].content = "A # B [C]"; // escape markers
+    let t = mk(2, 2);
+    t = withCellBold(t, { row: 0, column: 1 }, true);
+    t = withCellItalic(t, { row: 1, column: 0 }, true);
+    t = withCellContent(t, { row: 1, column: 1 }, "A # B [C]");
     const out = renderTable(t, { escapeCellContent: new Set(["#", "[", "]"]) });
     expect(out).toContain("[*R0C1*]");
     expect(out).toContain("[_R1C0_]");
@@ -143,10 +155,10 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("emits per-column align as an array when column specs vary", () => {
-    const t = mk(1, 2);
-    // set per-column alignment
-    t.columnSpecs[0].align = { horizontal: "left" };
-    t.columnSpecs[1].align = { horizontal: "center", vertical: "top" };
+    let t = mk(1, 2);
+    // set per-column alignment via helper
+    t = withColumnAlign(t, 0, { horizontal: "left" });
+    t = withColumnAlign(t, 1, { horizontal: "center", vertical: "top" });
 
     const out = renderTable(t);
     // expect align to be emitted as an array with formatted values
@@ -154,11 +166,10 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("emits horizontal-only stroke shorthand when only horizontal strokes are enabled", () => {
-    const t = mk(1, 1);
-    // rows length 1 => strokes.row length 2
-    t.strokes.row = [true, true]; // both top and bottom
-    // no vertical strokes
-    t.strokes.column = [false, false];
+    let t = mk(1, 1);
+    // rows length 1 => y in {0,1}
+    t = withRowStroke(t, 0, true);
+    t = withRowStroke(t, 1, true);
 
     const out = renderTable(t);
     expect(out).toContain("stroke: (x: 1pt, y: none)");
@@ -178,8 +189,7 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("supports multiple header rows and emits them inside table.header", () => {
-    const t = mk(4, 2);
-    t.headerRows = 2;
+    const t = { ...mk(4, 2), headerRows: 2 } as const;
     const out = renderTable(t);
     // header block should contain first two rows
     expect(out).toContain("table.header(");
@@ -191,10 +201,9 @@ describe("formatTable (domain/typst)", () => {
   });
 
   it("compacts a vertical-only grid into stroke: (x: none, y: 1pt)", () => {
-    const t = mk(2, 2);
-    t.headerRows = 0;
-    t.strokes.row = [false, false, false];
-    t.strokes.column = [true, true, true];
+    let t = mk(2, 2);
+    t = { ...t, headerRows: 0 };
+    for (let x = 0; x <= 2; x += 1) t = withColumnStroke(t, x, true);
 
     const out = renderTable(t);
     expect(out).toContain("stroke: (x: none, y: 1pt)");

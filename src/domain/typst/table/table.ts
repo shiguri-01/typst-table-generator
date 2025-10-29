@@ -61,7 +61,7 @@ const resolveRowIndex = (table: Table, atIndex?: number) =>
   resolveIndex(table.rows.length, atIndex);
 
 /** Resolve a column insertion/removal index for {@link ColumnSpec} list. */
-const resolveColumnIndex = (specs: ColumnSpec[], atIndex?: number) =>
+const resolveColumnIndex = (specs: readonly ColumnSpec[], atIndex?: number) =>
   resolveIndex(specs.length, atIndex);
 
 /** Increment headerRows when inserting at or above the header region. */

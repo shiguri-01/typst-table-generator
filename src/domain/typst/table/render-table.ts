@@ -110,14 +110,17 @@ export const DEFAULT_FORMAT_TABLE_OPTIONS: Required<TableFormattingOptions> = {
   escapeCellContent: false,
 } as const;
 
-const toColumnsArg = (specs: ColumnSpec[], style: ColumnsArgStyle): string => {
+const toColumnsArg = (
+  specs: readonly ColumnSpec[],
+  style: ColumnsArgStyle,
+): string => {
   if (style === "count") {
     return String(specs.length);
   }
   return formatArray(Array.from({ length: specs.length }, () => "auto"));
 };
 
-const toAlignArg = (specs: ColumnSpec[]): string => {
+const toAlignArg = (specs: readonly ColumnSpec[]): string => {
   if (specs.every((spec) => !spec.align)) {
     return formatAlign(DEFAULT_ALIGN);
   }
