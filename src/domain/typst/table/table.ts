@@ -14,18 +14,18 @@ export const DEFAULT_TABLE_HEADER_ROWS = 0;
  * - `strokes`: boolean arrays for horizontal/vertical boundaries.
  */
 export type Table = {
-  columnSpecs: ColumnSpec[];
-  rows: Row[];
+  readonly columnSpecs: ReadonlyArray<ColumnSpec>;
+  readonly rows: ReadonlyArray<Row>;
   /**
    * Number of header rows at the top of the table.
    */
-  headerRows?: number;
+  readonly headerRows?: number;
   /**
    * Where to draw strokes
    */
-  strokes: {
-    row: boolean[];
-    column: boolean[];
+  readonly strokes: {
+    readonly row: ReadonlyArray<boolean>;
+    readonly column: ReadonlyArray<boolean>;
   };
 };
 
