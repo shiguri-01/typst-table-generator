@@ -91,14 +91,12 @@ export const insertRow = (
     ...table.rows.slice(insertAt),
   ];
 
-  const newRowStrokes = Array.from(
-    { length: newRows.length + 1 },
-    (_, newRowIndex) => {
-      const originalRowIndex =
-        newRowIndex < insertAt ? newRowIndex : newRowIndex - 1;
-      return table.strokes.row[originalRowIndex] ?? false;
-    },
-  );
+  const newRowStrokes = Array(newRows.length + 1).fill(false);
+  for (let y = 0; y < table.strokes.row.length; y++) {
+    // 追加された行以降はインデックスが1増える
+    const newY = y < insertAt ? y : y + 1;
+    newRowStrokes[newY] = table.strokes.row[y];
+  }
 
   return {
     ...table,
@@ -133,14 +131,12 @@ export const removeRow = (table: Table, atIndex: number): Table => {
     ...table.rows.slice(removeAt + 1),
   ];
 
-  const newRowStrokes = Array.from(
-    { length: newRows.length + 1 },
-    (_, newRowIndex) => {
-      const originalRowIndex =
-        newRowIndex < removeAt ? newRowIndex : newRowIndex + 1;
-      return table.strokes.row[originalRowIndex] ?? false;
-    },
-  );
+  const newRowStrokes = Array(newRows.length + 1).fill(false);
+  for (let y = 0; y < table.strokes.row.length; y++) {
+    if (y === removeAt) continue; // 削除されたstrokeはスキップ
+    const newY = y < removeAt ? y : y - 1;
+    newRowStrokes[newY] = table.strokes.row[y];
+  }
 
   return {
     ...table,
@@ -196,14 +192,12 @@ export const insertColumn = (
     ...row.slice(insertAt),
   ]);
 
-  const newColumnStrokes = Array.from(
-    { length: newColumnSpecs.length + 1 },
-    (_, newColIndex) => {
-      const originalColIndex =
-        newColIndex < insertAt ? newColIndex : newColIndex - 1;
-      return table.strokes.column[originalColIndex] ?? false;
-    },
-  );
+  const newColumnStrokes = Array(newColumnSpecs.length + 1).fill(false);
+  for (let x = 0; x < table.strokes.column.length; x++) {
+    // 追加された列以降はインデックスが1増える
+    const newX = x < insertAt ? x : x + 1;
+    newColumnStrokes[newX] = table.strokes.column[x];
+  }
 
   return {
     ...table,
@@ -234,14 +228,12 @@ export const removeColumn = (table: Table, atIndex: number): Table => {
     ...row.slice(removeAt + 1),
   ]);
 
-  const newColumnStrokes = Array.from(
-    { length: newColumnSpecs.length + 1 },
-    (_, newColIndex) => {
-      const originalColIndex =
-        newColIndex < removeAt ? newColIndex : newColIndex + 1;
-      return table.strokes.column[originalColIndex] ?? false;
-    },
-  );
+  const newColumnStrokes = Array(newColumnSpecs.length + 1).fill(false);
+  for (let x = 0; x < table.strokes.column.length; x++) {
+    if (x === removeAt) continue; // 削除されたstrokeはスキップ
+    const newX = x < removeAt ? x : x - 1;
+    newColumnStrokes[newX] = table.strokes.column[x];
+  }
 
   return {
     ...table,

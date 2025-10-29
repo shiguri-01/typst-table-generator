@@ -135,7 +135,61 @@ describe("table helpers", () => {
     });
     expect(inserted.rows[0][1]).toEqual({ content: "new", bold: true });
     expect(inserted.rows[1][1]).toEqual({ content: "" });
-    expect(inserted.strokes.column).toEqual([true, true, false, true]);
+    expect(inserted.strokes.column).toEqual([true, false, false, true]);
+  });
+
+  it("inserting a row creates a new false boundary at the insertion index", () => {
+    const table = makeTable([[{ content: "a" }], [{ content: "b" }]], {
+      strokes: {
+        row: [true, true, true], // all true for visibility
+        column: [false, false],
+      },
+    });
+
+    const insertAt = 1;
+    const t = insertRow(table, insertAt);
+
+    // Newly created boundary at y=insertAt should be false.
+    expect(t.strokes.row[insertAt]).toBe(false);
+    // Boundaries before insertion are preserved.
+    expect(t.strokes.row[0]).toBe(true);
+    // Boundaries after insertion shift by +1 and are preserved.
+    expect(t.strokes.row.slice(insertAt + 1)).toEqual(
+      table.strokes.row.slice(insertAt),
+    );
+  });
+
+  it("inserting a column creates a new false boundary at the insertion index", () => {
+    const table = makeTable([[{ content: "a" }, { content: "b" }]], {
+      strokes: {
+        row: [false, false],
+        column: [true, true, true], // all true for visibility
+      },
+    });
+
+    const insertAt = 1;
+    const t = insertColumn(table, insertAt);
+
+    // Newly created boundary at x=insertAt should be false.
+    expect(t.strokes.column[insertAt]).toBe(false);
+    // Boundaries before insertion are preserved.
+    expect(t.strokes.column[0]).toBe(true);
+    // Boundaries after insertion shift by +1 and are preserved.
+    expect(t.strokes.column.slice(insertAt + 1)).toEqual(
+      table.strokes.column.slice(insertAt),
+    );
+  });
+
+  it("supports negative index for row/column insertion (append)", () => {
+    const table = createEmptyTable(1, 1);
+
+    const tRow = insertRow(table, -1);
+    expect(tRow.rows).toHaveLength(2);
+    expect(tRow.strokes.row).toEqual([false, false, false]);
+
+    const tCol = insertColumn(table, -1);
+    expect(tCol.columnSpecs).toHaveLength(2);
+    expect(tCol.strokes.column).toEqual([false, false, false]);
   });
 
   it("removes a column and shifts remaining data and strokes", () => {

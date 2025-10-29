@@ -96,9 +96,9 @@ Typst の整列指定は次のとおりです。
 
 テーブル編集ヘルパは罫線配列の長さとインデックスを保ったままシフトします。
 
-- 行の挿入: `rows` に行を差し込み、`strokes.row` は長さを `rows.length + 1` に再構成して既存境界の真偽を保持します。`insertAt <= headerRows` のとき `headerRows` を +1。
+- 行の挿入: `rows` に行を差し込み、`strokes.row` は長さを `rows.length + 1` に再構成します。挿入位置 `y = insertAt` の新規境界は `false` で初期化し、既存境界は `insertAt` より下側ではインデックスを +1 シフトして保持します。`insertAt <= headerRows` のとき `headerRows` を +1。
 - 行の削除: 対象行を削除して `strokes.row` を再構成します。`removeAt < headerRows` のとき `headerRows` を -1（下限 0）。
-- 列の挿入/削除も同様に `strokes.column` を再構成します。
+- 列の挿入/削除も同様に `strokes.column` を再構成します（挿入位置 `x = insertAt` の新規境界は `false`）。
 
 ## Spec changes
 
@@ -110,4 +110,3 @@ Typst の整列指定は次のとおりです。
   - src/domain/typst に合わせてデータモデルを刷新。`ColumnSpec.width` と `TableStrokes`（pt 指定）を廃止し、`strokes.row/column: boolean[]` に一本化。
   - `Align` はオブジェクト型（`horizontal`/`vertical`）とし、キャプションは Table から分離（`figure()` で扱う）。
   - 太字/斜体は `strong[]/emph[]` ではなくインライン記法（`*...*`, `_..._`）で出力する。-
-
