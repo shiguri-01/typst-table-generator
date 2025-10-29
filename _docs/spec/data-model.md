@@ -82,6 +82,16 @@ Typst のインラインマークアップとして扱います。UI で改行�
 - 水平のみが全 true のときは `stroke: (x: 1pt, y: none)`、垂直のみが全 true のときは `stroke: (x: none, y: 1pt)` を使用します。
 - それ以外（部分的な線）は `stroke: none` を指定し、必要な位置にだけ `table.hline()` と `table.vline(x: k)` を追加します。
 
+### `Align`
+
+`horizontal` / `vertical` の両方またはいずれかを指定できます。未指定の場合は Typst の `auto` として扱います。
+
+Typst の整列指定は次のとおりです。
+- 水平方向: `left`, `center`, `right`
+- 垂直方向: `top`, `horizon`, `bottom`
+
+参照： [Typst Alignment Documentation](https://typst.app/docs/reference/layout/alignment/)
+
 ## 変更時の取り扱い（挿入・削除）
 
 テーブル編集ヘルパは罫線配列の長さとインデックスを保ったままシフトします。
