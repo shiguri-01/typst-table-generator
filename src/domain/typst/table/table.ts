@@ -2,8 +2,16 @@ import { type Cell, createEmptyCell } from "./cell";
 import { type ColumnSpec, DEFAULT_COLUMN_SPEC } from "./column";
 import { createEmptyRow, normalizeRowLength, type Row } from "./row";
 
+/** Default header rows when unspecified. */
 export const DEFAULT_TABLE_HEADER_ROWS = 0;
 
+/**
+ * Immutable table model used by the Typst domain.
+ * - `columnSpecs`: per-column defaults (alignment).
+ * - `rows`: matrix of cells.
+ * - `headerRows`: number of header rows at the top (optional).
+ * - `strokes`: boolean arrays for horizontal/vertical boundaries.
+ */
 export type Table = {
   columnSpecs: ColumnSpec[];
   rows: Row[];
@@ -20,6 +28,7 @@ export type Table = {
   };
 };
 
+/** Create a new empty table with given row/column counts. */
 export const createEmptyTable = (numRows: number, numCols: number): Table => {
   const columnSpecs: ColumnSpec[] = Array.from({ length: numCols }, () => ({
     ...DEFAULT_COLUMN_SPEC,
@@ -59,6 +68,7 @@ const bumpHeaderOnInsertRow = (
   return insertAt <= headerRows ? headerRows + 1 : headerRows;
 };
 
+/** Insert a row at `atIndex` (end by default), preserving strokes and headers. */
 export const insertRow = (
   table: Table,
   atIndex?: number,
@@ -104,6 +114,7 @@ const bumpHeaderOnRemoveRow = (
   return removeAt < headerRows ? Math.max(0, headerRows - 1) : headerRows;
 };
 
+/** Remove a row at `atIndex` if present, preserving strokes and headers. */
 export const removeRow = (table: Table, atIndex: number): Table => {
   const removeAt = resolveRowIndex(table, atIndex);
 
@@ -148,6 +159,7 @@ const normalizeColumnLength = (column: Cell[], numRows: number): Cell[] => {
   ];
 };
 
+/** Insert a column at `atIndex` (end by default), preserving strokes. */
 export const insertColumn = (
   table: Table,
   atIndex?: number,
@@ -198,6 +210,7 @@ export const insertColumn = (
   };
 };
 
+/** Remove a column at `atIndex` if present, preserving strokes. */
 export const removeColumn = (table: Table, atIndex: number): Table => {
   const removeAt = resolveColumnIndex(table.columnSpecs, atIndex);
 
@@ -235,6 +248,7 @@ export const removeColumn = (table: Table, atIndex: number): Table => {
   };
 };
 
+/** Test whether a position is inside the table bounds. */
 export const isInBounds = (
   table: Table,
   pos: { row: number; column: number },
@@ -248,6 +262,7 @@ export const isInBounds = (
   );
 };
 
+/** Get current table dimensions (rows/columns). */
 export const dimensions = (table: Table): { rows: number; columns: number } => {
   return {
     rows: table.rows.length,

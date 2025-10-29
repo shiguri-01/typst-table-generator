@@ -1,3 +1,6 @@
+/**
+ * Determine whether the character at `index` is escaped by a preceding `\\`.
+ */
 export const isEscaped = (source: string, index: number): boolean => {
   let backslashCount = 0;
   for (let lookback = index - 1; lookback >= 0; lookback -= 1) {
@@ -12,6 +15,9 @@ export const isEscaped = (source: string, index: number): boolean => {
 
 export const ESCAPE_CHARS = new Set(["//"]);
 
+/**
+ * Escape each unescaped occurrence of any pattern in `set` by prefixing `\\`.
+ */
 export const escapeSet = (source: string, set: Set<string>): string => {
   const patterns = Array.from(set);
 
@@ -36,8 +42,10 @@ export const escapeSet = (source: string, set: Set<string>): string => {
   return result;
 };
 
+/** Option bag for escaping: a set of patterns or `false` to disable. */
 export type EscapeOption = Set<string> | false;
 
+// Split by unescaped newlines while preserving escape semantics.
 const splitUnescapedLines = (source: string): string[] => {
   const lines: string[] = [];
   let current = "";
@@ -60,21 +68,21 @@ const splitUnescapedLines = (source: string): string[] => {
 
 const INDENT = "  ";
 
+/** Add a two-space indent to each unescaped line. */
 export const addIndent = (source: string): string =>
   splitUnescapedLines(source)
     .map((line) => `${INDENT}${line}`)
     .join("\n");
 
 /** Wrap value as a Typst content block: `[ ... ]` */
+/** Wrap value as a Typst content block: `[ ... ]`. */
 export const toContentBlock = (value: string): string => {
   return `[${value}]`;
 };
 
+/** Description of a Typst function call to format. */
 interface FormatFunctionArg {
-  /**
-   * Typst function name.
-   * @example "table.cell"
-   */
+  /** Typst function name (e.g. "table.cell"). */
   name: string;
 
   args: {
@@ -98,6 +106,7 @@ interface FormatFunctionArg {
   };
 }
 
+/** Rendering options for {@link formatFunction}. */
 interface FormatFunctionOptions {
   /**
    * If true, place arguments in multiple lines (with indentation).
@@ -107,6 +116,13 @@ interface FormatFunctionOptions {
   multipleLine?: boolean;
 }
 
+/**
+ * Format a Typst call expression.
+ *
+ * Preserves named argument order and places the unnamed argument last in the
+ * printed output (order is not semantically relevant in Typst). When
+ * `multipleLine` is true, indents each argument on its own line.
+ */
 export const formatFunction = (
   { name, args }: FormatFunctionArg,
   options?: FormatFunctionOptions,

@@ -12,6 +12,13 @@ import type { ColumnSpec } from "./column";
 import type { Row } from "./row";
 import type { Table } from "./table";
 
+/**
+ * Render a single {@link Cell} into Typst inline content.
+ *
+ * - Applies optional escaping, italic/bold markers, and wraps as a content
+ *   block `[ ... ]`.
+ * - When `cell.align` is provided, emits `table.cell(align: ..., [content])`.
+ */
 export const renderCell = (
   cell: Cell,
   {
@@ -49,6 +56,7 @@ export const renderCell = (
   return toContentBlock(content);
 };
 
+/** Render a row by joining rendered cells with `, `. */
 export const renderRow = (
   row: Row,
   { escapeCellContent }: { escapeCellContent?: EscapeOption },
@@ -77,8 +85,10 @@ const renderHline = (y?: number) =>
     args: y !== undefined ? { named: { y: String(y) } } : {},
   });
 
+/** How to emit the `columns` argument of `table(...)`. */
 export type ColumnsArgStyle = "autoArray" | "count";
 
+/** Options that control how a table is rendered to Typst. */
 export type TableFormattingOptions = {
   /**
    * How to emit the `columns` argument.
@@ -94,6 +104,7 @@ export type TableFormattingOptions = {
   escapeCellContent?: EscapeOption;
 };
 
+/** Default {@link TableFormattingOptions}. */
 export const DEFAULT_FORMAT_TABLE_OPTIONS: Required<TableFormattingOptions> = {
   columnsArgStyle: "autoArray",
   escapeCellContent: false,
@@ -135,15 +146,12 @@ const toStrokeArg = ({
 };
 
 /**
- * Renders a table to a Typst table function call.
+ * Render a {@link Table} to a Typst `table(...)` call (multi-line).
  *
- * Generates the complete Typst code for a table, including headers, body rows,
- * strokes (lines), and formatting options.
- *
- * @param table - The table to render.
- * @param options - Formatting options for the table.
- * @returns The Typst code of the table.
- *
+ * - Emits `table.header(...)` for header rows, then body rows.
+ * - Compacts full-stroke grids to `stroke: 1pt` or `(x|y)` shorthand.
+ * - Otherwise places `table.hline()` at visual boundaries and appends
+ *   `table.vline(x: k)` calls for vertical lines.
  */
 export function renderTable(
   table: Table,
