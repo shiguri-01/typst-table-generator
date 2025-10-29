@@ -49,7 +49,7 @@ export const renderFigure = (
   );
 
   const { ref } = options;
-  if (ref === undefined) {
+  if (ref !== undefined) {
     return `${figure}<${ref}>`;
   }
   return figure;
