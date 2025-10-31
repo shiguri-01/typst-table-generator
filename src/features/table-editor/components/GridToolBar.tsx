@@ -36,7 +36,7 @@ import { Toggle } from "@/components/ui/toggle";
 import type { HorizontalAlign, VerticalAlign } from "@/domain/typst/alignment";
 import { cx } from "@/lib/primitive";
 import { cn } from "@/lib/utils";
-import { type CellRange, getCellPositions, isSingleCell } from "../selections";
+import { type CellRange, getCellPositions, isSingleCell } from "../cell-range";
 import {
   clearSelectionBorders,
   insertColumnLeftOfSelection,

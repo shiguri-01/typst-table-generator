@@ -25,7 +25,7 @@ import {
   withColumnStroke,
   withRowStroke,
 } from "@/domain/typst/table/table";
-import { type CellRange, getCellPositions, normalizeRange } from "./selections";
+import { type CellRange, getCellPositions, normalizeRange } from "./cell-range";
 
 interface WrapFigure {
   enabled: boolean;
