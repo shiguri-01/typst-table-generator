@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Grid } from "@/features/table-editor/components/Grid";
 import { GridToolBar } from "@/features/table-editor/components/GridToolBar";
+import { TableEditorGrid } from "@/features/table-editor/components/TableEditorGrid";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -9,7 +9,7 @@ function App() {
     <div>
       <h1>top page</h1>
       <GridToolBar />
-      <Grid />
+      <TableEditorGrid />
     </div>
   );
 }

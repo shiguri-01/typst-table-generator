@@ -243,7 +243,6 @@ type SelectionUpdater = (table: Table, selection: CellRange) => Table;
 const runSelectionUpdate = (updater: SelectionUpdater) => {
   tableEditorStore.setState((state) => {
     if (!state.selection) {
-      console.log("No selection to update");
       return state;
     }
 

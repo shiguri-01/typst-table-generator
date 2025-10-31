@@ -63,7 +63,7 @@ const cellStyle = tv({
 
 // react-datasheet-gridのtextColumnを参考に作成
 // https://github.com/nick-keller/react-datasheet-grid/blob/master/src/columns/textColumn.tsx
-const CustomCell = memo(
+const TableEditorGridCell = memo(
   ({ rowIndex, columnIndex, focus }: CellProps<DatasheetGridRow>) => {
     const ref = useRef<HTMLInputElement>(null);
     const cell = useStore(
@@ -120,20 +120,19 @@ const CustomCell = memo(
   },
 );
 
-const customColumn = (): Column<DatasheetGridRow> => ({
-  component: CustomCell,
+const gridColumn = (): Column<DatasheetGridRow> => ({
+  component: TableEditorGridCell,
 });
 
-export const Grid = () => {
+export const TableEditorGrid = () => {
   const table = useStore(tableData);
   const columns = table.columns.map((colKey, colIdx) => ({
-    ...keyColumn(colKey, customColumn()),
+    ...keyColumn(colKey, gridColumn()),
     title: createColumnTitle(colIdx),
   }));
 
   const handleActiveCellChange = useCallback(
     ({ cell }: { cell: Cell | null }) => {
-      console.log(cell);
       if (!cell) return;
 
       if (cell) {
@@ -164,11 +163,12 @@ export const Grid = () => {
   );
 
   useEffect(() => {
-    const unsubscribe = tableData.mount();
-    const uns = cellStrokes.mount();
+    const unmountTableData = tableData.mount();
+    // セルで参照されるストアだが、親のGridで一か所にまとめてマウントする
+    const unmountCellStrokes = cellStrokes.mount();
     return () => {
-      unsubscribe();
-      uns();
+      unmountTableData();
+      unmountCellStrokes();
     };
   }, []);
 
