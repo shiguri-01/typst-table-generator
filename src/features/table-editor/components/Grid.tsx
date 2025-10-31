@@ -1,7 +1,7 @@
 import "react-datasheet-grid/dist/style.css";
 
 import { useStore } from "@tanstack/react-store";
-import { memo, useCallback, useLayoutEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Input } from "react-aria-components";
 import {
   type CellProps,
@@ -111,10 +111,10 @@ const CustomCell = memo(
         onChange={(e) => {
           setContent(e.target.value);
         }}
-        data-borderT={stroke.top || undefined}
-        data-borderB={stroke.bottom || undefined}
-        data-borderL={stroke.left || undefined}
-        data-borderR={stroke.right || undefined}
+        data-border-top={stroke.top || undefined}
+        data-border-bottom={stroke.bottom || undefined}
+        data-border-left={stroke.left || undefined}
+        data-border-right={stroke.right || undefined}
       />
     );
   },
@@ -134,6 +134,8 @@ export const Grid = () => {
   const handleActiveCellChange = useCallback(
     ({ cell }: { cell: Cell | null }) => {
       console.log(cell);
+      if (!cell) return;
+
       if (cell) {
         const { row, col } = cell;
         setActiveCell({ row, column: col });
@@ -146,6 +148,8 @@ export const Grid = () => {
 
   const handleSelectionChange = useCallback(
     ({ selection }: { selection: SelectionWithId | null }) => {
+      if (!selection) return;
+
       if (selection) {
         const { min, max } = selection;
         selectCellRange({
@@ -159,15 +163,24 @@ export const Grid = () => {
     [],
   );
 
+  useEffect(() => {
+    const unsubscribe = tableData.mount();
+    const uns = cellStrokes.mount();
+    return () => {
+      unsubscribe();
+      uns();
+    };
+  }, []);
+
   return (
     <DataSheetGrid
       value={table.data}
       columns={columns}
       cellClassName={[
-        "has-[[data-borderT]]:!border-t has-[[data-borderT]]:!border-t-fg",
-        "has-[[data-borderB]]:!border-b has-[[data-borderB]]:!border-b-fg",
-        "has-[[data-borderL]]:!border-l has-[[data-borderL]]:!border-l-fg",
-        "has-[[data-borderR]]:!border-r has-[[data-borderR]]:!border-r-fg",
+        "has-[[data-border-top]]:!border-t has-[[data-border-top]]:!border-t-fg",
+        "has-[[data-border-bottom]]:!border-b has-[[data-border-bottom]]:!border-b-fg",
+        "has-[[data-border-left]]:!border-l has-[[data-border-left]]:!border-l-fg",
+        "has-[[data-border-right]]:!border-r has-[[data-border-right]]:!border-r-fg",
       ].join(" ")}
       addRowsComponent={false} // ツールバーUIで行追加するので不要
       onActiveCellChange={handleActiveCellChange}

@@ -46,3 +46,19 @@ export const normalizeRange = (
 
   return { start: actualStart, end: actualEnd };
 };
+
+export const getCellPositions = (range: CellRange): CellPosition[] => {
+  const positions: CellPosition[] = [];
+  for (let r = range.start.row; r <= range.end.row; r++) {
+    for (let c = range.start.column; c <= range.end.column; c++) {
+      positions.push({ row: r, column: c });
+    }
+  }
+  return positions;
+};
+
+export const isSingleCell = (range: CellRange): boolean => {
+  return (
+    range.start.row === range.end.row && range.start.column === range.end.column
+  );
+};
