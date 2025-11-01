@@ -120,29 +120,6 @@ export const cellStrokeSelector =
       left: false,
     };
 
-export type DatasheetGridRow = Record<string, Cell>;
-
-// TODO: 列の追加、消去でkeyが保持されるようにする
-/**
- * GridUIで使う用
- */
-export const tableData = new Derived({
-  deps: [tableEditorStore],
-  fn: () => {
-    const table = tableEditorStore.state.table;
-    const columnKeys = table.columnSpecs.map((_, index) => `col-${index}`);
-    const rowData: Array<DatasheetGridRow> = table.rows.map((row) => {
-      const rowRecord: DatasheetGridRow = {};
-      row.forEach((cell, index) => {
-        rowRecord[`col-${index}`] = cell;
-      });
-      return rowRecord;
-    });
-
-    return { columns: columnKeys, data: rowData };
-  },
-});
-
 export const wrapFigureEnabledSelector = (state: TableEditorState) =>
   state.wrapFigure.enabled;
 

@@ -1,31 +1,34 @@
 import "react-datasheet-grid/dist/style.css";
 
 import { useStore } from "@tanstack/react-store";
-import { memo, useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { Input, TextField } from "react-aria-components";
 import {
   type CellProps,
   type Column,
-  DataSheetGrid,
+  DynamicDataSheetGrid,
   keyColumn,
 } from "react-datasheet-grid";
-import type { Cell, SelectionWithId } from "react-datasheet-grid/dist/types";
+import type {
+  Cell as DatasheetGridCell,
+  SelectionWithId,
+} from "react-datasheet-grid/dist/types";
 import { tv } from "tailwind-variants";
-import { withCellContent } from "@/domain/typst/table/table";
+import type { Cell } from "@/domain/typst/table/cell";
+import { type CellPosition, withCellContent } from "@/domain/typst/table/table";
 import {
   cellSelector,
-  cellStrokeSelector,
-  cellStrokes,
   clearActiveCell,
   clearSelection,
-  type DatasheetGridRow,
   selectCellRange,
   setActiveCell,
-  tableData,
+  type TableEditorState,
   tableEditorStore,
   updateTable,
 } from "../store";
 import { createColumnTitle } from "../utils";
+
+type DatasheetGridRow = Record<string, Cell>;
 
 const cellStyle = tv({
   base: [
@@ -61,6 +64,18 @@ const cellStyle = tv({
   },
 });
 
+const cellStrokeSelector =
+  ({ row, column }: CellPosition) =>
+  (state: TableEditorState) => {
+    const { strokes } = state.table;
+    return {
+      top: strokes.row[row] ?? false,
+      bottom: strokes.row[row + 1] ?? false,
+      left: strokes.column[column] ?? false,
+      right: strokes.column[column + 1] ?? false,
+    };
+  };
+
 // react-datasheet-gridのtextColumnを参考に作成
 // https://github.com/nick-keller/react-datasheet-grid/blob/master/src/columns/textColumn.tsx
 const TableEditorGridCell = memo(
@@ -71,7 +86,7 @@ const TableEditorGridCell = memo(
       cellSelector({ row: rowIndex, column: columnIndex }),
     );
     const stroke = useStore(
-      cellStrokes,
+      tableEditorStore,
       cellStrokeSelector({ row: rowIndex, column: columnIndex }),
     );
 
@@ -130,15 +145,29 @@ const gridColumn = (): Column<DatasheetGridRow> => ({
   component: TableEditorGridCell,
 });
 
+const tableDataSelector = (state: TableEditorState): DatasheetGridRow[] =>
+  state.table.rows.map((row) =>
+    Object.fromEntries(row.map((cell, colIdx) => [`col-${colIdx}`, cell])),
+  );
+
+// TODO: 列の追加、消去でkeyが保持されるようにする
+const columnKeysSelector = (state: TableEditorState): string[] =>
+  state.table.columnSpecs.map((_, colIdx) => `col-${colIdx}`);
+
 export const TableEditorGrid = () => {
-  const table = useStore(tableData);
-  const columns = table.columns.map((colKey, colIdx) => ({
-    ...keyColumn(colKey, gridColumn()),
-    title: createColumnTitle(colIdx),
-  }));
+  const data = useStore(tableEditorStore, tableDataSelector);
+  const columnKeys = useStore(tableEditorStore, columnKeysSelector);
+  const columns = useMemo(
+    () =>
+      columnKeys.map((colKey, colIdx) => ({
+        ...keyColumn(colKey, gridColumn()),
+        title: createColumnTitle(colIdx),
+      })),
+    [columnKeys],
+  );
 
   const handleActiveCellChange = useCallback(
-    ({ cell }: { cell: Cell | null }) => {
+    ({ cell }: { cell: DatasheetGridCell | null }) => {
       if (!cell) return;
 
       if (cell) {
@@ -168,19 +197,9 @@ export const TableEditorGrid = () => {
     [],
   );
 
-  useEffect(() => {
-    const unmountTableData = tableData.mount();
-    // セルで参照されるストアだが、親のGridで一か所にまとめてマウントする
-    const unmountCellStrokes = cellStrokes.mount();
-    return () => {
-      unmountTableData();
-      unmountCellStrokes();
-    };
-  }, []);
-
   return (
-    <DataSheetGrid
-      value={table.data}
+    <DynamicDataSheetGrid
+      value={data}
       columns={columns}
       cellClassName={[
         "has-[[data-border-top]]:!border-t has-[[data-border-top]]:!border-t-fg",
