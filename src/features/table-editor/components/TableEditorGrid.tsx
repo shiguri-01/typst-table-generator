@@ -2,7 +2,7 @@ import "react-datasheet-grid/dist/style.css";
 
 import { useStore } from "@tanstack/react-store";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from "react";
-import { Input } from "react-aria-components";
+import { Input, TextField } from "react-aria-components";
 import {
   type CellProps,
   type Column,
@@ -76,12 +76,17 @@ const TableEditorGridCell = memo(
     );
 
     useLayoutEffect(() => {
-      if (focus) {
-        ref.current?.focus();
-        ref.current?.select();
+      const input = ref.current;
+      if (!input) {
+        return;
       }
 
-      ref.current?.blur();
+      if (focus) {
+        input.focus();
+        input.select();
+      } else {
+        input.blur();
+      }
     }, [focus]);
 
     if (!cell) {
@@ -95,27 +100,28 @@ const TableEditorGridCell = memo(
     };
 
     return (
-      <Input
-        ref={ref}
-        // react-datasheet-gridのスタイル
-        className={cellStyle({
-          alignH: cell.align?.horizontal,
-          alignV: cell.align?.vertical,
-          bold: cell.bold,
-          italic: cell.italic,
-        })}
-        style={{ pointerEvents: focus ? "auto" : "none" }}
-        // Cell単位でフォーカスを移動したいため、Inputがtabでフォーカスされることを防ぐ
-        tabIndex={-1}
+      <TextField
         value={cell.content}
-        onChange={(e) => {
-          setContent(e.target.value);
-        }}
+        onChange={setContent}
         data-border-top={stroke.top || undefined}
         data-border-bottom={stroke.bottom || undefined}
         data-border-left={stroke.left || undefined}
         data-border-right={stroke.right || undefined}
-      />
+        aria-label="cell input"
+      >
+        <Input
+          ref={ref}
+          // Cell単位でフォーカスを移動したいため、Inputがtabでフォーカスされることを防ぐ
+          tabIndex={-1}
+          className={cellStyle({
+            alignH: cell.align?.horizontal,
+            alignV: cell.align?.vertical,
+            bold: cell.bold,
+            italic: cell.italic,
+          })}
+          style={{ pointerEvents: focus ? "auto" : "none" }}
+        />
+      </TextField>
     );
   },
 );
