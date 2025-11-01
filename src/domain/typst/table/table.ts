@@ -246,6 +246,12 @@ export const removeColumn = (table: Table, atIndex: number): Table => {
   };
 };
 
+/** Position of a cell in the table. */
+export type CellPosition = {
+  row: number;
+  column: number;
+};
+
 const isRowInBounds = (table: Table, row: number): boolean => {
   return row >= 0 && row < table.rows.length;
 };
@@ -255,10 +261,7 @@ const isColumnInBounds = (table: Table, column: number): boolean => {
 };
 
 /** Test whether a position is inside the table bounds. */
-export const isInBounds = (
-  table: Table,
-  pos: { row: number; column: number },
-): boolean => {
+export const isInBounds = (table: Table, pos: CellPosition): boolean => {
   const { row, column } = pos;
   return isRowInBounds(table, row) && isColumnInBounds(table, column);
 };
@@ -269,6 +272,12 @@ export const dimensions = (table: Table): { rows: number; columns: number } => {
     rows: table.rows.length,
     columns: table.columnSpecs.length,
   };
+};
+
+/** Get the cell at given position, or `undefined` if out of bounds. */
+export const getCell = (table: Table, pos: CellPosition): Cell | undefined => {
+  if (!isInBounds(table, pos)) return undefined;
+  return table.rows[pos.row][pos.column];
 };
 
 /**
