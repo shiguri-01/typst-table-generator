@@ -16,6 +16,7 @@ import {
   createEmptyTable,
   insertColumn,
   insertRow,
+  isInBounds,
   removeColumn,
   removeRow,
   type Table,
@@ -229,10 +230,16 @@ const runSelectionUpdate = (updater: SelectionUpdater) => {
     }
 
     const nextSelection = normalizeRange(nextTable, state.selection);
+    const nextActiveCell =
+      state.activeCell && isInBounds(nextTable, state.activeCell)
+        ? state.activeCell
+        : (nextSelection?.start ?? null);
+
     return {
       ...state,
       table: nextTable,
       selection: nextSelection,
+      activeCell: nextActiveCell,
     };
   });
 };
@@ -240,11 +247,22 @@ const runSelectionUpdate = (updater: SelectionUpdater) => {
 const updateStateWithTable = (
   state: TableEditorState,
   table: Table,
-): TableEditorState => ({
-  ...state,
-  table,
-  selection: state.selection ? normalizeRange(table, state.selection) : null,
-});
+): TableEditorState => {
+  const nextSelection = state.selection
+    ? normalizeRange(table, state.selection)
+    : null;
+  const nextActiveCell =
+    state.activeCell && isInBounds(table, state.activeCell)
+      ? state.activeCell
+      : (nextSelection?.start ?? null);
+
+  return {
+    ...state,
+    table,
+    selection: nextSelection,
+    activeCell: nextActiveCell,
+  };
+};
 
 const reduceSelectionCells = (
   table: Table,
