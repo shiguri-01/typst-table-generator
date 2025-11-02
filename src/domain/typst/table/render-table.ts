@@ -88,6 +88,7 @@ const renderHline = (y?: number) =>
 /** How to emit the `columns` argument of `table(...)`. */
 export type ColumnsArgStyle = "autoArray" | "count";
 
+// TODO: rename TableRenderingOptions
 /** Options that control how a table is rendered to Typst. */
 export type TableFormattingOptions = {
   /**
