@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportOptionsPanel } from "@/features/table-editor/components/ExportOptionsPanel";
 import { GridToolBar } from "@/features/table-editor/components/GridToolBar";
 import { TableEditorGrid } from "@/features/table-editor/components/TableEditorGrid";
 
@@ -8,8 +9,13 @@ function App() {
   return (
     <div>
       <h1>top page</h1>
-      <GridToolBar />
-      <TableEditorGrid />
+      <div className="grid grid-cols-[1fr_auto]">
+        <div>
+          <GridToolBar />
+          <TableEditorGrid />
+        </div>
+        <ExportOptionsPanel />
+      </div>
     </div>
   );
 }
