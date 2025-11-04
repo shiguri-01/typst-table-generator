@@ -23,6 +23,7 @@ import {
   wrapFigureEnabledSelector,
   wrapFigureOptionsSelector,
 } from "../store";
+import { TypstExportModal } from "./TypstExportModal";
 
 const ESCAPE_INLINE_MARKERS = ["#", "$", "[", "]", "@"] as const;
 
@@ -98,7 +99,10 @@ export function ExportOptionsPanel() {
   return (
     <Card className="max-w-sm">
       <CardHeader>
-        <CardTitle>Export options</CardTitle>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>Export options</CardTitle>
+          <TypstExportModal />
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <Checkbox isSelected={escapeEnabled} onChange={handleEscapeToggle}>

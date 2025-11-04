@@ -78,7 +78,6 @@ export function GridToolBar() {
     </Toolbar>
   );
 }
-
 type ToolbarGroupProps = GroupProps & {
   groupHeader: string;
 };
