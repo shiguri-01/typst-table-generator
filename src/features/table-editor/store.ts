@@ -33,6 +33,12 @@ interface WrapFigure {
   figureOptions: FigureOption;
 }
 
+interface ExportState {
+  lastExportedCode: string | null;
+  isStale: boolean;
+  showExportModal: boolean;
+}
+
 export interface TableEditorState {
   table: Table;
   wrapFigure: WrapFigure;
@@ -40,6 +46,8 @@ export interface TableEditorState {
 
   activeCell: CellPosition | null;
   selection: CellRange | null;
+
+  export: ExportState;
 }
 
 const INITIAL_ROWS = 3;
@@ -54,6 +62,11 @@ export const tableEditorStore = new Store<TableEditorState>({
   tableRenderingOptions: { ...DEFAULT_FORMAT_TABLE_OPTIONS },
   selection: null,
   activeCell: null,
+  export: {
+    lastExportedCode: null,
+    isStale: false,
+    showExportModal: false,
+  },
 });
 
 export const cellSelector =
@@ -65,6 +78,19 @@ export const columnSpecSelector =
   (columnIndex: number) =>
   (state: TableEditorState): ColumnSpec | undefined =>
     state.table.columnSpecs[columnIndex];
+
+const markExportAsStale =
+  (updater: (state: TableEditorState) => TableEditorState) =>
+  (state: TableEditorState): TableEditorState => {
+    const newState = updater(state);
+    return {
+      ...newState,
+      export: {
+        ...newState.export,
+        isStale: newState.export.lastExportedCode !== null,
+      },
+    };
+  };
 
 export const updateTable = (table: Table | ((prev: Table) => Table)) => {
   tableEditorStore.setState((state) => {
@@ -78,12 +104,14 @@ export const updateTable = (table: Table | ((prev: Table) => Table)) => {
 };
 
 export const resetTable = () => {
-  tableEditorStore.setState((state) => ({
-    ...state,
-    table: createEmptyTable(INITIAL_ROWS, INITIAL_COLUMNS),
-    activeCell: null,
-    selection: null,
-  }));
+  tableEditorStore.setState(
+    markExportAsStale((state) => ({
+      ...state,
+      table: createEmptyTable(INITIAL_ROWS, INITIAL_COLUMNS),
+      activeCell: null,
+      selection: null,
+    })),
+  );
 };
 
 export type CellStroke = {
@@ -127,17 +155,20 @@ export const wrapFigureEnabledSelector = (state: TableEditorState) =>
 export const updateWrapFigureEnabled = (
   enabled: boolean | ((prev: boolean) => boolean),
 ) => {
-  tableEditorStore.setState((state) => {
-    const prev = state.wrapFigure.enabled;
-    const newEnabled = typeof enabled === "function" ? enabled(prev) : enabled;
-    return {
-      ...state,
-      wrapFigure: {
-        ...state.wrapFigure,
-        enabled: newEnabled,
-      },
-    };
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const prev = state.wrapFigure.enabled;
+      const newEnabled =
+        typeof enabled === "function" ? enabled(prev) : enabled;
+      return {
+        ...state,
+        wrapFigure: {
+          ...state.wrapFigure,
+          enabled: newEnabled,
+        },
+      };
+    }),
+  );
 };
 
 export const wrapFigureOptionsSelector = (state: TableEditorState) =>
@@ -146,17 +177,20 @@ export const wrapFigureOptionsSelector = (state: TableEditorState) =>
 export const updateWrapFigureOptions = (
   options: FigureOption | ((prev: FigureOption) => FigureOption),
 ) => {
-  tableEditorStore.setState((state) => {
-    const prev = state.wrapFigure.figureOptions;
-    const newOptions = typeof options === "function" ? options(prev) : options;
-    return {
-      ...state,
-      wrapFigure: {
-        ...state.wrapFigure,
-        figureOptions: newOptions,
-      },
-    };
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const prev = state.wrapFigure.figureOptions;
+      const newOptions =
+        typeof options === "function" ? options(prev) : options;
+      return {
+        ...state,
+        wrapFigure: {
+          ...state.wrapFigure,
+          figureOptions: newOptions,
+        },
+      };
+    }),
+  );
 };
 
 export const updateTableRenderingOptions = (
@@ -164,14 +198,17 @@ export const updateTableRenderingOptions = (
     | TableFormattingOptions
     | ((prev: TableFormattingOptions) => TableFormattingOptions),
 ) => {
-  tableEditorStore.setState((state) => {
-    const prev = state.tableRenderingOptions;
-    const newOptions = typeof options === "function" ? options(prev) : options;
-    return {
-      ...state,
-      tableRenderingOptions: newOptions,
-    };
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const prev = state.tableRenderingOptions;
+      const newOptions =
+        typeof options === "function" ? options(prev) : options;
+      return {
+        ...state,
+        tableRenderingOptions: newOptions,
+      };
+    }),
+  );
 };
 
 export const setActiveCell = (pos: CellPosition) => {
@@ -219,29 +256,31 @@ export const clearSelection = () => {
 type SelectionUpdater = (table: Table, selection: CellRange) => Table;
 
 const runSelectionUpdate = (updater: SelectionUpdater) => {
-  tableEditorStore.setState((state) => {
-    if (!state.selection) {
-      return state;
-    }
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      if (!state.selection) {
+        return state;
+      }
 
-    const nextTable = updater(state.table, state.selection);
-    if (nextTable === state.table) {
-      return state;
-    }
+      const nextTable = updater(state.table, state.selection);
+      if (nextTable === state.table) {
+        return state;
+      }
 
-    const nextSelection = normalizeRange(nextTable, state.selection);
-    const nextActiveCell =
-      state.activeCell && isInBounds(nextTable, state.activeCell)
-        ? state.activeCell
-        : (nextSelection?.start ?? null);
+      const nextSelection = normalizeRange(nextTable, state.selection);
+      const nextActiveCell =
+        state.activeCell && isInBounds(nextTable, state.activeCell)
+          ? state.activeCell
+          : (nextSelection?.start ?? null);
 
-    return {
-      ...state,
-      table: nextTable,
-      selection: nextSelection,
-      activeCell: nextActiveCell,
-    };
-  });
+      return {
+        ...state,
+        table: nextTable,
+        selection: nextSelection,
+        activeCell: nextActiveCell,
+      };
+    }),
+  );
 };
 
 const updateStateWithTable = (
@@ -416,22 +455,27 @@ export const clearSelectionBorders = () => {
 };
 
 export const insertRowAboveSelection = () => {
-  tableEditorStore.setState((state) => {
-    const targetRow = state.selection !== null ? state.selection.start.row : 0;
-    const nextTable = insertRow(state.table, targetRow);
-    return updateStateWithTable(state, nextTable);
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const targetRow =
+        state.selection !== null ? state.selection.start.row : 0;
+      const nextTable = insertRow(state.table, targetRow);
+      return updateStateWithTable(state, nextTable);
+    }),
+  );
 };
 
 export const insertRowBelowSelection = () => {
-  tableEditorStore.setState((state) => {
-    const targetRow =
-      state.selection !== null
-        ? state.selection.end.row + 1
-        : state.table.rows.length;
-    const nextTable = insertRow(state.table, targetRow);
-    return updateStateWithTable(state, nextTable);
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const targetRow =
+        state.selection !== null
+          ? state.selection.end.row + 1
+          : state.table.rows.length;
+      const nextTable = insertRow(state.table, targetRow);
+      return updateStateWithTable(state, nextTable);
+    }),
+  );
 };
 
 export const removeSelectedRows = () => {
@@ -445,23 +489,27 @@ export const removeSelectedRows = () => {
 };
 
 export const insertColumnLeftOfSelection = () => {
-  tableEditorStore.setState((state) => {
-    const targetColumn =
-      state.selection !== null ? state.selection.start.column : 0;
-    const nextTable = insertColumn(state.table, targetColumn);
-    return updateStateWithTable(state, nextTable);
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const targetColumn =
+        state.selection !== null ? state.selection.start.column : 0;
+      const nextTable = insertColumn(state.table, targetColumn);
+      return updateStateWithTable(state, nextTable);
+    }),
+  );
 };
 
 export const insertColumnRightOfSelection = () => {
-  tableEditorStore.setState((state) => {
-    const targetColumn =
-      state.selection !== null
-        ? state.selection.end.column + 1
-        : state.table.columnSpecs.length;
-    const nextTable = insertColumn(state.table, targetColumn);
-    return updateStateWithTable(state, nextTable);
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const targetColumn =
+        state.selection !== null
+          ? state.selection.end.column + 1
+          : state.table.columnSpecs.length;
+      const nextTable = insertColumn(state.table, targetColumn);
+      return updateStateWithTable(state, nextTable);
+    }),
+  );
 };
 
 export const removeSelectedColumns = () => {
@@ -477,3 +525,27 @@ export const removeSelectedColumns = () => {
     return next;
   });
 };
+
+// Export state management
+export const setExportModal = (open: boolean) => {
+  tableEditorStore.setState((state) => ({
+    ...state,
+    export: {
+      ...state.export,
+      showExportModal: open,
+    },
+  }));
+};
+
+export const updateExportedCode = (code: string) => {
+  tableEditorStore.setState((state) => ({
+    ...state,
+    export: {
+      ...state.export,
+      lastExportedCode: code,
+      isStale: false,
+    },
+  }));
+};
+
+export const exportStateSelector = (state: TableEditorState) => state.export;
