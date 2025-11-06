@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { generateTypstCode } from "../export";
 import {
   exportStateSelector,
+  setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
@@ -32,9 +33,8 @@ import { copyToClipboard } from "../utils";
 
 export function ExportModal() {
   const exportState = useStore(tableEditorStore, exportStateSelector);
-  const { showExportModal, lastExportedCode, isStale } = exportState;
+  const { showExportModal, lastExportedCode, isStale, copyError } = exportState;
   const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState(false);
 
   const handleExport = () => {
     const state = tableEditorStore.state;
@@ -59,7 +59,6 @@ export function ExportModal() {
       setTimeout(() => setCopied(false), 3000);
     } else {
       setCopyError(true);
-      setTimeout(() => setCopyError(false), 5000);
     }
   };
 

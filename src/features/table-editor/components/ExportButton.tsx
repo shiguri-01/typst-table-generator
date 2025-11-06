@@ -20,6 +20,7 @@ import {
 import { generateTypstCode } from "../export";
 import {
   exportStateSelector,
+  setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
@@ -39,6 +40,7 @@ export function ExportButton() {
     );
 
     updateExportedCode(code);
+    setCopyError(false);
     setExportModal(true);
   };
 
@@ -56,7 +58,10 @@ export function ExportButton() {
 
     // If copy fails, show the modal as fallback so user can manually copy
     if (!success) {
+      setCopyError(true);
       setExportModal(true);
+    } else {
+      setCopyError(false);
     }
   };
 
@@ -85,7 +90,10 @@ export function ExportButton() {
 
     // If copy fails, show the modal as fallback so user can manually copy
     if (!success) {
+      setCopyError(true);
       setExportModal(true);
+    } else {
+      setCopyError(false);
     }
   };
 
@@ -103,6 +111,7 @@ export function ExportButton() {
 
   const handleShowLastExport = () => {
     if (!lastExportedCode) return;
+    setCopyError(false);
     setExportModal(true);
   };
 
