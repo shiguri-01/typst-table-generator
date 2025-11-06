@@ -24,6 +24,7 @@ import {
   tableEditorStore,
   updateExportedCode,
 } from "../store";
+import { copyToClipboard } from "../utils";
 
 export function ExportButton() {
   const { lastExportedCode } = useStore(tableEditorStore, exportStateSelector);
@@ -51,7 +52,12 @@ export function ExportButton() {
     );
 
     updateExportedCode(code);
-    await navigator.clipboard.writeText(code);
+    const success = await copyToClipboard(code);
+
+    // If copy fails, show the modal as fallback so user can manually copy
+    if (!success) {
+      setExportModal(true);
+    }
   };
 
   const handleExportAndDownload = () => {
@@ -75,7 +81,12 @@ export function ExportButton() {
 
   const handleCopyExported = async () => {
     if (!lastExportedCode) return;
-    await navigator.clipboard.writeText(lastExportedCode);
+    const success = await copyToClipboard(lastExportedCode);
+
+    // If copy fails, show the modal as fallback so user can manually copy
+    if (!success) {
+      setExportModal(true);
+    }
   };
 
   const handleDownloadExported = () => {
