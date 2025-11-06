@@ -18,8 +18,6 @@ import type { Cell } from "@/domain/typst/table/cell";
 import { type CellPosition, withCellContent } from "@/domain/typst/table/table";
 import {
   cellSelector,
-  clearActiveCell,
-  clearSelection,
   selectCellRange,
   setActiveCell,
   type TableEditorState,
