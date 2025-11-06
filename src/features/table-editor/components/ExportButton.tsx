@@ -18,50 +18,56 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { generateTypstCode } from "../export";
+import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
   exportStateSelector,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
+  wrapFigureEnabledSelector,
+  wrapFigureOptionsSelector,
 } from "../store";
 
 export function ExportButton() {
   const { lastExportedCode } = useStore(tableEditorStore, exportStateSelector);
+  const table = useStore(tableEditorStore, tableSelector);
+  const tableRenderingOptions = useStore(
+    tableEditorStore,
+    tableRenderingOptionsSelector,
+  );
+  const wrapFigureEnabled = useStore(
+    tableEditorStore,
+    wrapFigureEnabledSelector,
+  );
+  const wrapFigureOptions = useStore(
+    tableEditorStore,
+    wrapFigureOptionsSelector,
+  );
+
+  const generateCurrentTypstCode = () =>
+    generateTypstCode(
+      table,
+      tableRenderingOptions,
+      wrapFigureEnabled,
+      wrapFigureOptions,
+    );
 
   const handleExportTypst = () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     setExportModal(true);
   };
 
   const handleExportAndCopy = async () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     await navigator.clipboard.writeText(code);
   };
 
   const handleExportAndDownload = () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     const blob = new Blob([code], { type: "text/plain" });
