@@ -30,9 +30,10 @@ export const renderFigure = (
   // ref以外
   const namedArgs = Object.entries(options).reduce(
     (acc, [key, value]) => {
-      if (key !== "ref") {
-        acc[key] = value;
+      if (key === "ref" || value === undefined) {
+        return acc;
       }
+      acc[key] = value;
       return acc;
     },
     {} as Record<string, string>,
