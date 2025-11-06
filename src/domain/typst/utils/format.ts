@@ -75,7 +75,7 @@ export const addIndent = (source: string): string =>
     .join("\n");
 
 /** Wrap value as a Typst content block: `[ ... ]` */
-/** Wrap value as a Typst content block: `[ ... ]`. */
+export const toContentBlock = (value: string): string => {
 export const toContentBlock = (value: string): string => {
   return `[${value}]`;
 };
