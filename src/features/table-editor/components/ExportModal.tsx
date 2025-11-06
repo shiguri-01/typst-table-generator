@@ -85,7 +85,9 @@ export function ExportModal() {
     const a = document.createElement("a");
     a.href = url;
     a.download = "table.typ";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
