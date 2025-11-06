@@ -93,14 +93,16 @@ const markExportAsStale =
   };
 
 export const updateTable = (table: Table | ((prev: Table) => Table)) => {
-  tableEditorStore.setState((state) => {
-    const updatedTable =
-      typeof table === "function" ? table(state.table) : table;
-    return {
-      ...state,
-      table: updatedTable,
-    };
-  });
+  tableEditorStore.setState(
+    markExportAsStale((state) => {
+      const updatedTable =
+        typeof table === "function" ? table(state.table) : table;
+      return {
+        ...state,
+        table: updatedTable,
+      };
+    }),
+  );
 };
 
 export const resetTable = () => {
