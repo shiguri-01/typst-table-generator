@@ -42,9 +42,9 @@ const cellStyle = tv({
       right: "text-right",
     },
     alignV: {
-      top: "text-top",
-      horizon: "text-middle",
-      bottom: "text-bottom",
+      top: "align-top",
+      horizon: "align-middle",
+      bottom: "align-bottom",
     },
 
     bold: {
