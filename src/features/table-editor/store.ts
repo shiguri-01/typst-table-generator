@@ -99,10 +99,10 @@ export const updateTable = (table: Table | ((prev: Table) => Table)) => {
     markExportAsStale((state) => {
       const updatedTable =
         typeof table === "function" ? table(state.table) : table;
-      return {
-        ...state,
-        table: updatedTable,
-      };
+      if (updatedTable === state.table) {
+        return state;
+      }
+      return updateStateWithTable(state, updatedTable);
     }),
   );
 };
