@@ -27,9 +27,9 @@ export const escapeSet = (source: string, set: Set<string>): string => {
 
     for (const pattern of patterns) {
       if (source.startsWith(pattern, i) && !isEscaped(source, i)) {
-        // パターンの最初の文字だけをエスケープ
+        // Escape the pattern by prefixing with backslash
         result += `\\${pattern}`;
-        i += pattern.length - 1; // パターン全体をスキップ
+        i += pattern.length - 1; // Skip the rest of the pattern
         matched = true;
         break;
       }
