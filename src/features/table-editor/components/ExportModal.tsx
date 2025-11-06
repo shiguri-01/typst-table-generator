@@ -36,7 +36,7 @@ import { copyToClipboard } from "../utils";
 
 export function ExportModal() {
   const exportState = useStore(tableEditorStore, exportStateSelector);
-  const { showExportModal, lastExportedCode, isStale } = exportState;
+  const { showExportModal, lastExportedCode, isStale, copyError } = exportState;
   const table = useStore(tableEditorStore, tableSelector);
   const tableRenderingOptions = useStore(
     tableEditorStore,
