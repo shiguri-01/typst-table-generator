@@ -1,128 +1,86 @@
-# 入出力仕様
+# 出力仕様（src/domain/typst）
 
-## Typst 出力方針
+## Typst 出力の基本
 
-- 基本は `#table()` を使用。`columns` に `(auto | 長さ)` を与え、`align` を列/セルで制御。
-- 罫線は最小限(ヘッダー下・表下)をデフォルト、プリセットで増減。
-- 文字列エスケープ: `[` `]` `#` `"` 等を安全に処理。
+- `table()` を用いて表を出力します。
+  - `columns`: 既定は各列 `auto`。スタイルは 2 方式（下記）。
+  - `align`  : 全列未指定なら `auto`、列ごとに異なる場合は配列で出力。
+  - `stroke` : 全面/水平のみ/垂直のみのときは省略表現（`1pt` または `(x|y)`）。部分的な場合は `none` を指定し、個別の線は `table.hline()` / `table.vline(x: k)` を追加します。
+- 水平線の出力位置: `strokes.row[y]` が true の y 境界に `table.hline()` を挿入します（ただし全面/水平のみの省略時は挿入しない）。
+- 垂直線の出力位置: `strokes.column[x]` が true の x 境界に `table.vline(x: x)` を追加します（全面/垂直のみの省略時は挿入しない）。
+- ヘッダー行: `headerRows > 0` のとき先頭から `table.header(...)` ブロックに含めます。repeat 指定は行いません。
+- 引数の整形: 複数行モードでは各引数を 2 スペースでインデントして改行します（実装の `formatFunction(..., { multipleLine: true })` に一致）。
 
-### 簡易例
+### `columns` 引数の出力スタイル
 
-```typst
-#table(
-  columns: (auto, auto, auto),
-  align: center,
-  [A] [B] [C],
-  [1] [2] [3],
-)
-```
+- 既定（autoArray）: 列数ぶんの `auto` を配列で出力（例: `columns: (auto, auto, auto)`）。
+- shorthand（count）: 省略カウントで出力（例: `columns: 3`）。
 
-### 生成アルゴリズム
+- 任意の列幅指定の機能は扱いません。
+  - ユーザーは出力されたコードを編集することで柔軟に対応できます。このアプリでは table の土台を簡単に生成することに注力します。
+  - `autoArray` スタイルで出力することで、後からの手動編集が容易になります。
 
-1. `columnSpecs` から `columns: (...)` 引数を構築。`width: 'auto'` は `auto`、数値は `<数値>pt` として出力。
-2. プリセットの `tableArgs` があれば `table()` 呼び出しにマージ。
-3. `headerRows > 0` なら先頭行を `table.header(repeat: true, ...)` でラップ。
-4. 各セルは `[テキスト]` として出力し、`bold` なら `strong[...]`、`italic` なら `emph[...]` を重ねる。
-5. `strokes` を走査して `table.hline` / `table.vline` を追加。境界インデックスは @_docs/spec/data-model.md の Stroke 仕様に従う。
-6. `caption` があれば全体を `#figure(caption: [キャプション], ...)` で包む。
+### セルの出力
 
-## TSV ペースト処理
+- 内容は Typst のコンテンツブロック `[ ... ]` で包む。
+- 斜体/太字はインライン記法を使用（`_*...*_` / `*...*`）。
+- セル個別の整列がある場合のみ `table.cell(align: ..., [content])` を使用する。
+- エスケープ: オプションのエスケープ集合（`Set<string>`）を渡せる。含まれるパターン（例: `#`, `[`, `]`, `//` など）が未エスケープで現れた場合に先頭へ `\` を付加して出力する。
 
-- **行区切り**: `\r\n` を優先、セル内改行は単独の `\n` を保持。
-- **セル区切り**: `\t` で分割。
-- **列数の不揃い**: 各行の列数は最大列数にパディングし、空セルは `{ text: '' }` として追加。
-- **処理フロー**:
-  1. クリップボードから TSV テキストを取得。
-  2. `parseTsv(text)` で `rows: string[][]` へパース。
-  3. `createTableModel({ rows: parsedRows.map(row => row.map(text => ({ text }))) })` で正規化されたモデルを生成。
-  4. 現在の選択位置に貼り付け、または新規テーブルとして置き換え。
+## Figure（キャプション・参照）
 
-### パース仕様
+キャプションはテーブルから独立しており、必要に応じて `figure()` でラップします。表への参照・言及のため `ref` を指定できます。
 
 ```ts
-function parseTsv(text: string): string[][] {
-  // 1. 行を \r\n または \n で分割
-  // 2. 各行を \t で分割
-  // 3. 空行はスキップ
-  // 4. 最大列数を計算し、短い行は空文字列でパディング
-}
+type FigureOption = { caption?: string; ref?: string };
+renderFigure(tableCode, { caption: "サンプル", ref: "tb:sample" });
 ```
 
-## JSON モデルの保存/読込
+## Stroke 詳細仕様（解釈と出力）
 
-### 保存
+ここでは `Table.strokes` と Typst への出力の対応を詳述します。
 
-- `JSON.stringify(model, null, 2)` で整形して出力。
-- ファイル名は `<テーブル名>.ttg.json` を推奨。
-- `localStorage` への自動保存は `ttg:lastTable` キーで実施。
+- 用語
+  - 行境界 y: `0..rows.length`。y=0 は表の最上端、y=n は最下端。
+  - 列境界 x: `0..columns`。x=0 は最左端、x=m は最右端。
+  - `strokes.row[y]` が true: y 境界に水平線、`strokes.column[x]` が true: x 境界に垂直線。
 
-### 読込
+- `table(stroke: ...)` 引数の最適化
+  - 全水平かつ全垂直が true: `stroke: 1pt`。個別の `hline/vline` は出力しない。
+  - 全水平のみ true: `stroke: (x: 1pt, y: none)`。`hline` は出力しない。
+  - 全垂直のみ true: `stroke: (x: none, y: 1pt)`。`vline` は出力しない。
+  - それ以外: `stroke: none`。必要な位置のみ `hline/vline` を個別に出力。
 
-- `JSON.parse(text)` でパースし、型検証を実施。
-- 必須フィールド（`rows`）の存在確認。
-- `createTableModel(parsed)` に通して正規化ルールを適用。
-- 不正な値がある場合はエラーダイアログを表示し、読込を中止。
+- `table.hline()` の挿入位置（`stroke: none` の場合）
+  - ヘッダー内: `i = 0..headerRows-1` の各行について、y=i が true なら先に `table.hline()`、続けて行内容を `table.header(...)` ブロックに出力。
+  - ヘッダー直後: y=`headerRows` が true の場合、ヘッダーの後に `table.hline()` を挿入（ボディ開始前の境界）。
+  - ボディ行: `i = headerRows..rows.length-1` の各行について、y=i が true なら先に `table.hline()`、続けて行内容を出力。
+  - 最終境界: y=`rows.length` が true なら最後に `table.hline()` を出力。
 
-### バリデーション
+- `table.vline(x: k)` の出力（`stroke: none` の場合）
+  - x=`0..columns` で true の境界それぞれについて、テーブル末尾に `table.vline(x: k)` を追加（ヘッダー有無に関わらずまとめて末尾に出力）。
 
-```ts
-function validateTableModel(data: unknown): data is TableModel {
-  // 1. rows が配列であること
-  // 2. 各 row が Cell 配列であること
-  // 3. headerRows が数値または未定義
-  // 4. columnSpecs が配列または未定義
-  // 5. strokes が正しい構造
-}
-```
+- 例（ヘッダー1行、外枠＋ヘッダー下＋最下端、左右のみ垂直線）
+  - `strokes.row = [true, true, false, true]`（y=0,1,3）
+  - `strokes.column = [true, false, true]`（x=0,2）
+  - 出力はテストの期待例に一致:
+    - `table.header(hline(), [H0..])`, ヘッダー直後に `hline()`, ボディ後に `hline()`、末尾に `vline(x:0)`, `vline(x:2)`。
 
-## エクスポート処理
+## I/O方針
 
-### Typst コードエクスポート
+- JSON（アプリ独自の中間表現）の入出力は提供しません。
+  - 理由: 元データは Excel/TSV が多く、出力は Typst コードとして保存・共有できるため。これらの方が運用面で広く安定しているためです。
+- インポート: TSV のみ（行区切り正規化 → タブ分割 → 列数正規化）。
+- エクスポート: 生成した Typst コードのコピー（クリップボード）またはダウンロードのみ。
 
-1. `generateTypstCode(model, presetId)` を呼び出し。
-2. プリセットを適用して最終的な `strokes` と `tableArgs` を取得。
-3. 生成したコードをモーダルに表示。
-4. 「コピー」ボタンでクリップボードへコピー。
-5. 「ダウンロード」ボタンで `.typ` ファイルとしてダウンロード。
+## 参考リンク（Typst ドキュメント）
 
-### JSON エクスポート
+- [Typst Tables Guide](https://raw.githubusercontent.com/typst/typst/refs/heads/main/docs/guides/tables.md)
+- [Typst Table Reference](https://typst.app/docs/reference/model/table/)
 
-1. 現在の `model` を `JSON.stringify` で整形。
-2. `.ttg.json` ファイルとしてダウンロード。
-3. クリップボードへのコピーも提供。
+## Spec changes
 
-## アルゴリズム詳細
-
-### 列幅推定
-
-- 文字幅の概算から `auto`/固定幅を選択。
-- 手動指定（`columnSpecs.width`）を優先。
-- 将来的には最大セル幅を計算して推奨値を提示。
-
-### エスケープ処理
-
-- Typst 特殊記号（`[` `]` `#` `"` 等）はバッククォート/テキストモード等で回避。
-- 現在は生の Typst マークアップをそのまま出力するため、エスケープは最小限。
-- セル内に `]` が単独である場合など、構文エラーを防ぐための基本的なエスケープのみ実施。
-
-### セル結合（将来実装）
-
-- 空セルを `colspan/rowspan` に折り畳む。
-- `table.cell(colspan: 2, [テキスト])` のような出力を生成。
-
-## エラー処理
-
-### 大規模貼り付け
-
-- サイズ上限（例: 1000 行 × 100 列）を超える場合は確認ダイアログを表示。
-- 処理中はローディング表示。
-
-### クリップボード失敗
-
-- クリップボード API が使えない場合は手動コピー用のテキストエリアを表示。
-- トースト通知でフィードバック。
-
-### JSON パースエラー
-
-- 不正な JSON の場合はエラーメッセージを表示。
-- 部分的に修復可能な場合は修復提案を表示。
+- 2025-10-29
+  - 出力規則を詳細化。`stroke` の最適化と `hline/vline` の挿入位置（ヘッダー内/直後/ボディ/末尾）を明文化。
+  - I/O 方針を更新。JSON の入出力を廃止し、TSV インポート＋Typst エクスポートに限定。
+  - `figure(ref: string)` を追加（参照用識別子）。

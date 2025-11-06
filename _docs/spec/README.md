@@ -1,6 +1,6 @@
 # typst-table-generator: 仕様ドキュメント
 
-最終更新: 2025-10-27 / バージョン: 0.1-draft
+最終更新: 2025-10-28 / バージョン: 0.1-draft
 
 ## 📋 必読セクション
 
@@ -79,3 +79,9 @@
 ---
 
 **Note**: 各ファイルは独立して読めるように書かれていますが、相互参照が必要な場合は `@file-path` 形式でリンクします。
+
+## 🔎 Quick Pointers
+
+- 出力規約・生成手順: @_docs/spec/io-spec.md（「Typst 出力方針」「生成アルゴリズム」）
+- 罫線（Stroke）定義: @_docs/spec/data-model.md（「Stroke の扱い」）
+- 直近の変更履歴: @_docs/spec/io-spec.md と @_docs/spec/data-model.md の末尾「Spec changes」
