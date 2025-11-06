@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import { tv, type VariantProps } from "tailwind-variants";
 
@@ -20,7 +21,7 @@ export function ButtonGroup({
   className,
   orientation,
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupStyles>) {
+}: ComponentProps<"div"> & VariantProps<typeof buttonGroupStyles>) {
   return (
     // biome-ignore lint/a11y/useSemanticElements: This is a generic container for buttons
     <div
@@ -36,7 +37,7 @@ export function ButtonGroup({
 export function ButtonGroupText({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: ComponentProps<"div">) {
   return (
     <div
       className={twMerge(
