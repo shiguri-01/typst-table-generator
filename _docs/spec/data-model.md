@@ -6,7 +6,7 @@
 
 ```ts
 export type HorizontalAlign = "left" | "center" | "right";
-export type VerticalAlign   = "top"  | "horizon" | "bottom";
+export type VerticalAlign = "top" | "horizon" | "bottom";
 
 export type Align = {
   horizontal?: HorizontalAlign;
@@ -15,8 +15,8 @@ export type Align = {
 
 export type Cell = {
   content: string;
-  align?: Align;   // セル単位の整列。指定時は table.cell() を使用して出力。
-  bold?: boolean;  // `*...*` で出力
+  align?: Align; // セル単位の整列。指定時は table.cell() を使用して出力。
+  bold?: boolean; // `*...*` で出力
   italic?: boolean; // `_..._` で出力
 };
 
@@ -60,9 +60,10 @@ Typst のインラインマークアップとして扱います。UI で改行�
 ### `Cell.bold` / `Cell.italic`
 
 実装は Typst のインライン記法をそのまま用います。
+
 - 太字: `*text*`
 - 斜体: `_text_`
-両方 true の場合は `*_text_*` の順で入れ子にします。
+  両方 true の場合は `*_text_*` の順で入れ子にします。
 
 ### `headerRows`
 
@@ -79,7 +80,7 @@ Typst のインラインマークアップとして扱います。UI で改行�
 - `row[y]` が true なら y 境界に水平線。
 - `column[x]` が true なら x 境界に垂直線。
 - 全境界が true（水平・垂直とも）のときは `stroke: 1pt` の省略表現を使い、個別の `table.hline/vline` は出力しません。
-- 水平のみが全 true のときは `stroke: (x: 1pt, y: none)`、垂直のみが全 true のときは `stroke: (x: none, y: 1pt)` を使用します。
+- 水平のみが全 true のときは `stroke: (x: none, y: 1pt)`、垂直のみが全 true のときは `stroke: (x: 1pt, y: none)` を使用します。
 - それ以外（部分的な線）は `stroke: none` を指定し、必要な位置にだけ `table.hline()` と `table.vline(x: k)` を追加します。
 
 ### `Align`
@@ -87,6 +88,7 @@ Typst のインラインマークアップとして扱います。UI で改行�
 `horizontal` / `vertical` の両方またはいずれかを指定できます。未指定の場合は Typst の `auto` として扱います。
 
 Typst の整列指定は次のとおりです。
+
 - 水平方向: `left`, `center`, `right`
 - 垂直方向: `top`, `horizon`, `bottom`
 
@@ -105,8 +107,13 @@ Typst の整列指定は次のとおりです。
 - 2025-10-26
   - `TableModel` に `strokes` を追加し、スタイルプリセットは関数として適用するように再定義。線は行/列境界単位でのみ指定し、Typst 生成時の `table.hline`/`table.vline` へ変換する。
   - セルとキャプションの文字列は生の Typst マークアップとして扱い、`linebreak()` などの自動変換を行わない。
-  
 - 2025-10-29
+
   - src/domain/typst に合わせてデータモデルを刷新。`ColumnSpec.width` と `TableStrokes`（pt 指定）を廃止し、`strokes.row/column: boolean[]` に一本化。
   - `Align` はオブジェクト型（`horizontal`/`vertical`）とし、キャプションは Table から分離（`figure()` で扱う）。
   - 太字/斜体は `strong[]/emph[]` ではなくインライン記法（`*...*`, `_..._`）で出力する。
+
+- 2025-11-06
+  - `strokes` セクションの stroke 軸マッピングを修正。x 軸は垂直（列）境界、y 軸は水平（行）境界が正しい対応。
+    - 修正前: 水平のみ `stroke: (x: 1pt, y: none)`、垂直のみ `stroke: (x: none, y: 1pt)`
+    - 修正後: 水平のみ `stroke: (x: none, y: 1pt)`、垂直のみ `stroke: (x: 1pt, y: none)`

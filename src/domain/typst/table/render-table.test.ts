@@ -172,7 +172,7 @@ describe("formatTable (domain/typst)", () => {
     t = withRowStroke(t, 1, true);
 
     const out = renderTable(t);
-    expect(out).toContain("stroke: (x: 1pt, y: none)");
+    expect(out).toContain("stroke: (x: none, y: 1pt)");
     // vertical vline entries should not be present
     expect(out).not.toContain("table.vline");
   });
@@ -200,13 +200,13 @@ describe("formatTable (domain/typst)", () => {
     expect(out).toContain("[R3C0]");
   });
 
-  it("compacts a vertical-only grid into stroke: (x: none, y: 1pt)", () => {
+  it("compacts a vertical-only grid into stroke: (x: 1pt, y: none)", () => {
     let t = mk(2, 2);
     t = { ...t, headerRows: 0 };
     for (let x = 0; x <= 2; x += 1) t = withColumnStroke(t, x, true);
 
     const out = renderTable(t);
-    expect(out).toContain("stroke: (x: none, y: 1pt)");
+    expect(out).toContain("stroke: (x: 1pt, y: none)");
     // should not emit table.hline calls when using the vertical-only shorthand
     expect(out).not.toContain("table.hline");
   });

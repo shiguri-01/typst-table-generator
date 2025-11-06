@@ -141,10 +141,10 @@ const toStrokeArg = ({
     return STROKE_LINE;
   }
   if (allHorizontal) {
-    return `(x: ${STROKE_LINE}, y: ${STROKE_NONE})`;
+    return `(x: ${STROKE_NONE}, y: ${STROKE_LINE})`;
   }
   if (allVertical) {
-    return `(x: ${STROKE_NONE}, y: ${STROKE_LINE})`;
+    return `(x: ${STROKE_LINE}, y: ${STROKE_NONE})`;
   }
   return STROKE_NONE;
 };
