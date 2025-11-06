@@ -18,26 +18,44 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { generateTypstCode } from "../export";
+import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
   exportStateSelector,
   setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
+  wrapFigureEnabledSelector,
+  wrapFigureOptionsSelector,
 } from "../store";
 import { copyToClipboard } from "../utils";
 
 export function ExportButton() {
   const { lastExportedCode } = useStore(tableEditorStore, exportStateSelector);
+  const table = useStore(tableEditorStore, tableSelector);
+  const tableRenderingOptions = useStore(
+    tableEditorStore,
+    tableRenderingOptionsSelector,
+  );
+  const wrapFigureEnabled = useStore(
+    tableEditorStore,
+    wrapFigureEnabledSelector,
+  );
+  const wrapFigureOptions = useStore(
+    tableEditorStore,
+    wrapFigureOptionsSelector,
+  );
+
+  const generateCurrentTypstCode = () =>
+    generateTypstCode(
+      table,
+      tableRenderingOptions,
+      wrapFigureEnabled,
+      wrapFigureOptions,
+    );
 
   const handleExportTypst = () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     setCopyError(false);
@@ -45,13 +63,7 @@ export function ExportButton() {
   };
 
   const handleExportAndCopy = async () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     const success = await copyToClipboard(code);
@@ -66,13 +78,7 @@ export function ExportButton() {
   };
 
   const handleExportAndDownload = () => {
-    const state = tableEditorStore.state;
-    const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
-    );
+    const code = generateCurrentTypstCode();
 
     updateExportedCode(code);
     const blob = new Blob([code], { type: "text/plain" });
@@ -80,7 +86,9 @@ export function ExportButton() {
     const a = document.createElement("a");
     a.href = url;
     a.download = "table.typ";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -105,7 +113,9 @@ export function ExportButton() {
     const a = document.createElement("a");
     a.href = url;
     a.download = "table.typ";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 

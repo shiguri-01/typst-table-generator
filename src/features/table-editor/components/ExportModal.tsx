@@ -22,27 +22,42 @@ import {
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import { generateTypstCode } from "../export";
+import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
   exportStateSelector,
   setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
+  wrapFigureEnabledSelector,
+  wrapFigureOptionsSelector,
 } from "../store";
 import { copyToClipboard } from "../utils";
 
 export function ExportModal() {
   const exportState = useStore(tableEditorStore, exportStateSelector);
-  const { showExportModal, lastExportedCode, isStale, copyError } = exportState;
+  const { showExportModal, lastExportedCode, isStale } = exportState;
+  const table = useStore(tableEditorStore, tableSelector);
+  const tableRenderingOptions = useStore(
+    tableEditorStore,
+    tableRenderingOptionsSelector,
+  );
+  const wrapFigureEnabled = useStore(
+    tableEditorStore,
+    wrapFigureEnabledSelector,
+  );
+  const wrapFigureOptions = useStore(
+    tableEditorStore,
+    wrapFigureOptionsSelector,
+  );
   const [copied, setCopied] = useState(false);
 
   const handleExport = () => {
-    const state = tableEditorStore.state;
     const code = generateTypstCode(
-      state.table,
-      state.tableRenderingOptions,
-      state.wrapFigure.enabled,
-      state.wrapFigure.figureOptions,
+      table,
+      tableRenderingOptions,
+      wrapFigureEnabled,
+      wrapFigureOptions,
     );
 
     updateExportedCode(code);
