@@ -109,4 +109,4 @@ Typst の整列指定は次のとおりです。
 - 2025-10-29
   - src/domain/typst に合わせてデータモデルを刷新。`ColumnSpec.width` と `TableStrokes`（pt 指定）を廃止し、`strokes.row/column: boolean[]` に一本化。
   - `Align` はオブジェクト型（`horizontal`/`vertical`）とし、キャプションは Table から分離（`figure()` で扱う）。
-  - 太字/斜体は `strong[]/emph[]` ではなくインライン記法（`*...*`, `_..._`）で出力する。-
+  - 太字/斜体は `strong[]/emph[]` ではなくインライン記法（`*...*`, `_..._`）で出力する。
