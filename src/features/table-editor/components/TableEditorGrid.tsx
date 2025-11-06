@@ -31,7 +31,6 @@ type DatasheetGridRow = Record<string, Cell>;
 const cellStyle = tv({
   base: [
     "dsg-input", // react-datasheet-gridのデフォルトスタイル
-    "border-red-500",
   ],
   variants: {
     alignH: {
