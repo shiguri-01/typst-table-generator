@@ -37,6 +37,7 @@ interface ExportState {
   lastExportedCode: string | null;
   isStale: boolean;
   showExportModal: boolean;
+  copyError: boolean;
 }
 
 export interface TableEditorState {
@@ -66,6 +67,7 @@ export const tableEditorStore = new Store<TableEditorState>({
     lastExportedCode: null,
     isStale: false,
     showExportModal: false,
+    copyError: false,
   },
 });
 
@@ -535,6 +537,7 @@ export const setExportModal = (open: boolean) => {
     export: {
       ...state.export,
       showExportModal: open,
+      copyError: open ? state.export.copyError : false,
     },
   }));
 };
@@ -546,6 +549,16 @@ export const updateExportedCode = (code: string) => {
       ...state.export,
       lastExportedCode: code,
       isStale: false,
+    },
+  }));
+};
+
+export const setCopyError = (hasError: boolean) => {
+  tableEditorStore.setState((state) => ({
+    ...state,
+    export: {
+      ...state.export,
+      copyError: hasError,
     },
   }));
 };

@@ -25,12 +25,14 @@ import { generateTypstCode } from "../export";
 import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
   exportStateSelector,
+  setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
   wrapFigureEnabledSelector,
   wrapFigureOptionsSelector,
 } from "../store";
+import { copyToClipboard } from "../utils";
 
 export function ExportModal() {
   const exportState = useStore(tableEditorStore, exportStateSelector);
@@ -64,9 +66,15 @@ export function ExportModal() {
   const handleCopy = async () => {
     if (!lastExportedCode) return;
 
-    await navigator.clipboard.writeText(lastExportedCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
+    setCopyError(false);
+    const success = await copyToClipboard(lastExportedCode);
+
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } else {
+      setCopyError(true);
+    }
   };
 
   const handleDownload = () => {
@@ -90,6 +98,7 @@ export function ExportModal() {
 
         <ModalBody className="space-y-4">
           {isStale && <CodeStale handleExport={handleExport} />}
+          {copyError && <CopyError />}
 
           {lastExportedCode ? (
             <CodeBlock language="typst" className="max-h-96">
@@ -166,6 +175,25 @@ function CodeStale({ handleExport }: { handleExport: () => void }) {
         <IconRefresh data-slot="icon" aria-hidden className="size-4" />
         Re-export
       </Button>
+    </div>
+  );
+}
+
+function CopyError() {
+  return (
+    <div className="grid gap-3 items-center p-4 bg-danger/10 rounded-md">
+      <div className="grid grid-cols-[auto_1fr] gap-3">
+        <IconAlertTriangle className="mt-0.5 size-5 text-danger" />
+        <div>
+          <Text className="font-medium text-fg">
+            Failed to copy to clipboard
+          </Text>
+          <Text className="text-muted-fg">
+            Your browser may not support clipboard operations or permission was
+            denied. Please manually select and copy the code above.
+          </Text>
+        </div>
+      </div>
     </div>
   );
 }
