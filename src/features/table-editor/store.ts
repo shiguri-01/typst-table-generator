@@ -99,9 +99,6 @@ export const updateTable = (table: Table | ((prev: Table) => Table)) => {
     markExportAsStale((state) => {
       const updatedTable =
         typeof table === "function" ? table(state.table) : table;
-      if (updatedTable === state.table) {
-        return state;
-      }
       return updateStateWithTable(state, updatedTable);
     }),
   );
@@ -287,6 +284,26 @@ const runSelectionUpdate = (updater: SelectionUpdater) => {
   );
 };
 
+const areCellPositionsEqual = (
+  a: CellPosition | null,
+  b: CellPosition | null,
+): boolean => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.row === b.row && a.column === b.column;
+};
+
+const areRangesEqual = (a: CellRange | null, b: CellRange | null): boolean => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.start.row === b.start.row &&
+    a.start.column === b.start.column &&
+    a.end.row === b.end.row &&
+    a.end.column === b.end.column
+  );
+};
+
 const updateStateWithTable = (
   state: TableEditorState,
   table: Table,
@@ -298,6 +315,17 @@ const updateStateWithTable = (
     state.activeCell && isInBounds(table, state.activeCell)
       ? state.activeCell
       : (nextSelection?.start ?? null);
+
+  const tableChanged = table !== state.table;
+  const selectionChanged = !areRangesEqual(state.selection, nextSelection);
+  const activeCellChanged = !areCellPositionsEqual(
+    state.activeCell,
+    nextActiveCell,
+  );
+
+  if (!tableChanged && !selectionChanged && !activeCellChanged) {
+    return state;
+  }
 
   return {
     ...state,
