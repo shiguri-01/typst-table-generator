@@ -1,6 +1,7 @@
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
-export function Text({ className, ...props }: React.ComponentProps<"p">) {
+export function Text({ className, ...props }: ComponentProps<"p">) {
   return (
     <p
       data-slot="text"
