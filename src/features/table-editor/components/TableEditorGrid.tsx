@@ -170,12 +170,8 @@ export const TableEditorGrid = () => {
     ({ cell }: { cell: DatasheetGridCell | null }) => {
       if (!cell) return;
 
-      if (cell) {
-        const { row, col } = cell;
-        setActiveCell({ row, column: col });
-      } else {
-        clearActiveCell();
-      }
+      const { row, col } = cell;
+      setActiveCell({ row, column: col });
     },
     [],
   );
@@ -184,15 +180,11 @@ export const TableEditorGrid = () => {
     ({ selection }: { selection: SelectionWithId | null }) => {
       if (!selection) return;
 
-      if (selection) {
-        const { min, max } = selection;
-        selectCellRange({
-          start: { row: min.row, column: min.col },
-          end: { row: max.row, column: max.col },
-        });
-      } else {
-        clearSelection();
-      }
+      const { min, max } = selection;
+      selectCellRange({
+        start: { row: min.row, column: min.col },
+        end: { row: max.row, column: max.col },
+      });
     },
     [],
   );
