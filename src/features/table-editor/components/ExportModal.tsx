@@ -7,7 +7,7 @@ import {
   IconRefresh,
 } from "@tabler/icons-react";
 import { useStore } from "@tanstack/react-store";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import {
@@ -51,6 +51,16 @@ export function ExportModal() {
     wrapFigureOptionsSelector,
   );
   const [copied, setCopied] = useState(false);
+  const copyResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeout.current !== null) {
+        clearTimeout(copyResetTimeout.current);
+        copyResetTimeout.current = null;
+      }
+    };
+  }, []);
 
   const handleExport = () => {
     const code = generateTypstCode(
@@ -71,7 +81,13 @@ export function ExportModal() {
 
     if (success) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
+      if (copyResetTimeout.current !== null) {
+        clearTimeout(copyResetTimeout.current);
+      }
+      copyResetTimeout.current = setTimeout(() => {
+        setCopied(false);
+        copyResetTimeout.current = null;
+      }, 3000);
     } else {
       setCopyError(true);
     }
