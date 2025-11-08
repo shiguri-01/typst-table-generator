@@ -7,21 +7,27 @@ describe("copyToClipboard", () => {
     const clipboardMock = {
       writeText: writeTextMock,
     };
-    // @ts-expect-error - mocking navigator.clipboard
-    global.navigator = { clipboard: clipboardMock };
+
+    vi.stubGlobal("navigator", {
+      clipboard: clipboardMock,
+    });
 
     const result = await copyToClipboard("test text");
 
     expect(result).toBe(true);
     expect(writeTextMock).toHaveBeenCalledWith("test text");
+
+    vi.unstubAllGlobals();
   });
 
   it("should return false when clipboard API is not available", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    // @ts-expect-error - mocking navigator.clipboard as undefined
-    global.navigator = { clipboard: undefined };
+
+    vi.stubGlobal("navigator", {
+      clipboard: undefined,
+    });
 
     const result = await copyToClipboard("test text");
 
@@ -31,6 +37,7 @@ describe("copyToClipboard", () => {
     );
 
     consoleErrorSpy.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it("should return false and log error when writeText fails", async () => {
@@ -42,8 +49,10 @@ describe("copyToClipboard", () => {
     const clipboardMock = {
       writeText: writeTextMock,
     };
-    // @ts-expect-error - mocking navigator.clipboard
-    global.navigator = { clipboard: clipboardMock };
+
+    vi.stubGlobal("navigator", {
+      clipboard: clipboardMock,
+    });
 
     const result = await copyToClipboard("test text");
 
@@ -54,5 +63,6 @@ describe("copyToClipboard", () => {
     );
 
     consoleErrorSpy.mockRestore();
+    vi.unstubAllGlobals();
   });
 });
