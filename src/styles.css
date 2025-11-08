@@ -7,21 +7,25 @@
 
 body {
   @apply m-0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: "Geist Mono", 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace';
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono:
+    "Geist Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", '"Liberation Mono"', '"Courier New"', "monospace";
   --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   --font-mono--font-feature-settings: "ss02", "zero";
   --color-border: var(--border);
@@ -96,79 +100,79 @@ code {
 }
 
 :root {
-    --bg: oklch(1 0 0);
-    --fg: oklch(0.205 0 0);
+  --bg: oklch(1 0 0);
+  --fg: oklch(0.205 0 0);
 
-    --primary: oklch(0.897 0.196 126.665);
-    --primary-fg: oklch(0.274 0.072 132.109);
+  --primary: oklch(0.897 0.196 126.665);
+  --primary-fg: oklch(0.274 0.072 132.109);
 
-    --primary-subtle: oklch(0.841 0.238 128.85 / 0.2);
-    --primary-subtle-fg: oklch(0.532 0.157 131.589);
+  --primary-subtle: oklch(0.841 0.238 128.85 / 0.2);
+  --primary-subtle-fg: oklch(0.532 0.157 131.589);
 
-    --secondary: oklch(0.922 0 0);
-    --secondary-fg: oklch(0.145 0 0);
+  --secondary: oklch(0.922 0 0);
+  --secondary-fg: oklch(0.145 0 0);
 
-    --overlay: oklch(1 0 0);
-    --overlay-fg: oklch(0.145 0 0);
+  --overlay: oklch(1 0 0);
+  --overlay-fg: oklch(0.145 0 0);
 
-    --accent: oklch(0.922 0 0);
-    --accent-fg: oklch(0.145 0 0);
+  --accent: oklch(0.922 0 0);
+  --accent-fg: oklch(0.145 0 0);
 
-    --muted: oklch(0.97 0 0);
-    --muted-fg: oklch(0.556 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-fg: oklch(0.556 0 0);
 
-    --success: oklch(0.596 0.145 163.225);
-    --success-fg: oklch(1 0 0);
+  --success: oklch(0.596 0.145 163.225);
+  --success-fg: oklch(1 0 0);
 
-    --success-subtle: oklch(0.696 0.17 162.48 / 0.15);
-    --success-subtle-fg: oklch(0.508 0.118 165.612);
+  --success-subtle: oklch(0.696 0.17 162.48 / 0.15);
+  --success-subtle-fg: oklch(0.508 0.118 165.612);
 
-    --info-subtle: oklch(0.685 0.169 237.323 / 0.15);
-    --info-subtle-fg: oklch(0.5 0.134 242.749);
+  --info-subtle: oklch(0.685 0.169 237.323 / 0.15);
+  --info-subtle-fg: oklch(0.5 0.134 242.749);
 
-    --warning: oklch(0.828 0.189 84.429);
-    --warning-fg: oklch(0.279 0.077 45.635);
+  --warning: oklch(0.828 0.189 84.429);
+  --warning-fg: oklch(0.279 0.077 45.635);
 
-    --warning-subtle: oklch(0.828 0.189 84.429 / 0.2);
-    --warning-subtle-fg: oklch(0.555 0.163 48.998);
+  --warning-subtle: oklch(0.828 0.189 84.429 / 0.2);
+  --warning-subtle-fg: oklch(0.555 0.163 48.998);
 
-    --danger: oklch(0.577 0.245 27.325);
-    --danger-fg: oklch(0.971 0.013 17.38);
+  --danger: oklch(0.577 0.245 27.325);
+  --danger-fg: oklch(0.971 0.013 17.38);
 
-    --danger-subtle: oklch(0.637 0.237 25.331 / 0.15);
-    --danger-subtle-fg: oklch(0.505 0.213 27.518);
+  --danger-subtle: oklch(0.637 0.237 25.331 / 0.15);
+  --danger-subtle-fg: oklch(0.505 0.213 27.518);
 
-    --border: oklch(0.910 0 0);
-    --input: oklch(0.87 0 0);
-    --ring: oklch(0.648 0.2 131.684);
+  --border: oklch(0.91 0 0);
+  --input: oklch(0.87 0 0);
+  --ring: oklch(0.648 0.2 131.684);
 
-    --navbar: oklch(0.995 0 0);
-    --navbar-fg: oklch(0.145 0 0);
+  --navbar: oklch(0.995 0 0);
+  --navbar-fg: oklch(0.145 0 0);
 
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-fg: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.897 0.196 126.665);
-    --sidebar-primary-fg: oklch(0.274 0.072 132.109);
-    --sidebar-accent: oklch(0.922 0 0);
-    --sidebar-accent-fg: oklch(0.145 0 0);
-    --sidebar-border: oklch(0.900 0 0);
-    --sidebar-ring: oklch(0.648 0.2 131.684);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-fg: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.897 0.196 126.665);
+  --sidebar-primary-fg: oklch(0.274 0.072 132.109);
+  --sidebar-accent: oklch(0.922 0 0);
+  --sidebar-accent-fg: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0.648 0.2 131.684);
 
-    --chart-1: oklch(0.648 0.2 131.684);
-    --chart-2: oklch(0.768 0.233 130.85);
-    --chart-3: oklch(0.841 0.238 128.85);
-    --chart-4: oklch(0.897 0.196 126.665);
-    --chart-5: oklch(0.938 0.127 124.321);
+  --chart-1: oklch(0.648 0.2 131.684);
+  --chart-2: oklch(0.768 0.233 130.85);
+  --chart-3: oklch(0.841 0.238 128.85);
+  --chart-4: oklch(0.897 0.196 126.665);
+  --chart-5: oklch(0.938 0.127 124.321);
 
-    --radius-lg: 0.25rem;
-    --radius-xs: calc(var(--radius-lg) * 0.5);
-    --radius-sm: calc(var(--radius-lg) * 0.75);
-    --radius-md: calc(var(--radius-lg) * 0.9);
-    --radius-xl: calc(var(--radius-lg) * 1.25);
-    --radius-2xl: calc(var(--radius-lg) * 1.5);
-    --radius-3xl: calc(var(--radius-lg) * 2);
-    --radius-4xl: calc(var(--radius-lg) * 3);
-  }
+  --radius-lg: 0.25rem;
+  --radius-xs: calc(var(--radius-lg) * 0.5);
+  --radius-sm: calc(var(--radius-lg) * 0.75);
+  --radius-md: calc(var(--radius-lg) * 0.9);
+  --radius-xl: calc(var(--radius-lg) * 1.25);
+  --radius-2xl: calc(var(--radius-lg) * 1.5);
+  --radius-3xl: calc(var(--radius-lg) * 2);
+  --radius-4xl: calc(var(--radius-lg) * 3);
+}
 
 .dark {
   --bg: oklch(0.185 0 0);
@@ -247,7 +251,11 @@ code {
     background-color: var(--bg);
     color: var(--fg);
   }
-  *, ::after, ::before, ::backdrop, ::file-selector-button {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
     border-color: var(--border, currentColor);
   }
   html {
@@ -268,7 +276,7 @@ code {
 }
 
 @utility touch-target {
-    position: relative;
+  position: relative;
   &::before {
     content: "";
     position: absolute;
