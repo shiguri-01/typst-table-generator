@@ -1,5 +1,5 @@
 import { IconCheck, IconCopy, IconX } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -59,8 +59,9 @@ export function CodeBlock({
       timeoutRef.current = null;
     }
 
-    // Reset error state
+    // Reset both states
     setError(false);
+    setCopied(false);
 
     // Attempt to copy to clipboard
     const success = await copyToClipboard(children);
@@ -81,6 +82,15 @@ export function CodeBlock({
       }, COPIED_STATE_TIMEOUT_MS);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative rounded-lg">
