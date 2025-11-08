@@ -1,7 +1,10 @@
-import { IconCheck, IconCopy } from "@tabler/icons-react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { IconCheck, IconCopy, IconX } from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
+import { cn, copyToClipboard } from "@/lib/utils";
 import { Button } from "./button";
+
+// Timeout duration for showing the "copied" state
+const COPIED_STATE_TIMEOUT_MS = 3000;
 
 interface CodeBlockProps {
   /**
@@ -46,12 +49,48 @@ export function CodeBlock({
   className,
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(children);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
+    // Clear any existing timeout to prevent race conditions
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    // Reset both states
+    setError(false);
+    setCopied(false);
+
+    // Attempt to copy to clipboard
+    const success = await copyToClipboard(children);
+
+    if (success) {
+      setCopied(true);
+      // Set timeout to reset copied state
+      timeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        timeoutRef.current = null;
+      }, COPIED_STATE_TIMEOUT_MS);
+    } else {
+      // Show error state briefly
+      setError(true);
+      timeoutRef.current = setTimeout(() => {
+        setError(false);
+        timeoutRef.current = null;
+      }, COPIED_STATE_TIMEOUT_MS);
+    }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative rounded-lg">
@@ -70,11 +109,15 @@ export function CodeBlock({
           size="sq-sm"
           intent="plain"
           onPress={handleCopy}
-          aria-label={copied ? "Copied" : "Copy to clipboard"}
+          aria-label={
+            copied ? "Copied" : error ? "Copy failed" : "Copy to clipboard"
+          }
           className="absolute top-2 right-3 z-10"
         >
           {copied ? (
             <IconCheck className="size-4" />
+          ) : error ? (
+            <IconX className="size-4 text-danger" />
           ) : (
             <IconCopy className="size-4" />
           )}
