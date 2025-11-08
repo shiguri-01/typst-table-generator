@@ -117,7 +117,7 @@ export function CodeBlock({
           {copied ? (
             <IconCheck className="size-4" />
           ) : error ? (
-            <IconX className="size-4" />
+            <IconX className="size-4 text-danger" />
           ) : (
             <IconCopy className="size-4" />
           )}
