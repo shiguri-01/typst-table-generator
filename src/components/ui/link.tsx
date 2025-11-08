@@ -1,5 +1,3 @@
-"use client";
-
 import type { ToOptions } from "@tanstack/react-router";
 import {
   Link as LinkPrimitive,
