@@ -1,5 +1,3 @@
-"use client";
-
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
 import type { HeadingProps, TextProps } from "react-aria-components";

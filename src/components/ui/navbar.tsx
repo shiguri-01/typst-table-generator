@@ -1,5 +1,3 @@
-"use client";
-
 import { IconMenu } from "@tabler/icons-react";
 import { LayoutGroup, motion } from "motion/react";
 import {
