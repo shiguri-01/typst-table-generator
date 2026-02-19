@@ -33,6 +33,9 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
   - レビュー指摘対応として、編集中クリックを `mouse-editing` プラグインが奪わないよう修正。あわせて no-op 編集時は `commitEdit` せず `cancelEditing` に分岐し、export の不要な stale 化を防止。
   - 追加で更新粒度を改善。`applyGridPatches` は変更セルを含む行のみ clone し、変更なし patch は table 参照を維持。`markExportAsStale` も no-op state 更新時はそのまま返すよう修正。
   - `tableEditorStore` の実装を `createSignal` から `createStore + reconcile` へ移行。公開API（`tableEditorStore()` / action群）は維持しつつ、差分反映時の更新粒度を改善。
+  - レビュー指摘対応として、グリッド patch 適用時は既存セルへマージしてから反映するよう変更し、delete/paste 時に `bold/italic/align` が消えないよう修正。
+  - `Checkbox` children に `<Label>` を渡していた箇所を通常要素へ置換し、nested `<label>` の不正マークアップを解消。
+  - table更新APIを分割。グリッドの `onCellsChange` は `applyTableCellPatches`（`produce`）で直接適用し、全体置換系は `replaceTable`（`reconcile`）で扱うハイブリッドへ変更。
 
 ## Summary
 

@@ -1,4 +1,5 @@
-import { createStore, reconcile } from "solid-js/store";
+import type { CellPatch } from "@shiguri/solid-grid";
+import { createStore, produce, reconcile } from "solid-js/store";
 import type {
   Align,
   HorizontalAlign,
@@ -81,6 +82,26 @@ const applyState = (updater: (state: TableEditorState) => TableEditorState) => {
   setTableEditorState(reconcile(next));
 };
 
+const areCellsEqual = (a: Cell, b: Cell): boolean => {
+  const aAlignH = a.align?.horizontal;
+  const aAlignV = a.align?.vertical;
+  const bAlignH = b.align?.horizontal;
+  const bAlignV = b.align?.vertical;
+
+  return (
+    a.content === b.content &&
+    a.bold === b.bold &&
+    a.italic === b.italic &&
+    aAlignH === bAlignH &&
+    aAlignV === bAlignV
+  );
+};
+
+const mergeCellPatch = (currentCell: Cell, patchValue: Cell): Cell => ({
+  ...currentCell,
+  ...patchValue,
+});
+
 export const cellSelector = (
   state: TableEditorState,
   pos: CellPosition,
@@ -102,12 +123,49 @@ const markExportAsStale =
     };
   };
 
-export const updateTable = (table: Table | ((prev: Table) => Table)) => {
+export const replaceTable = (table: Table | ((prev: Table) => Table)) => {
   applyState(
     markExportAsStale((state) => {
       const updatedTable =
         typeof table === "function" ? table(state.table) : table;
       return updateStateWithTable(state, updatedTable);
+    }),
+  );
+};
+
+export const applyTableCellPatches = (patches: CellPatch<Cell>[]) => {
+  if (patches.length === 0) {
+    return;
+  }
+
+  setTableEditorState(
+    produce((state) => {
+      const rows = state.table.rows as Cell[][];
+      let hasChanges = false;
+
+      for (const { pos, value } of patches) {
+        const row = rows[pos.row];
+        const currentCell = row?.[pos.col];
+        if (!currentCell) {
+          continue;
+        }
+
+        const nextCell = mergeCellPatch(currentCell, value);
+        if (areCellsEqual(currentCell, nextCell)) {
+          continue;
+        }
+
+        row[pos.col] = nextCell;
+        hasChanges = true;
+      }
+
+      if (!hasChanges) {
+        return;
+      }
+
+      if (state.export.lastExportedCode !== null) {
+        state.export.isStale = true;
+      }
     }),
   );
 };

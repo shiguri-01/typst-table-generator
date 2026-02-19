@@ -1,7 +1,6 @@
 import "@shiguri/solid-grid/preset-tailwind.css";
 
 import {
-  type CellPatch,
   type CellRenderContext,
   clipboardTextPlugin,
   createPluginHost,
@@ -19,11 +18,11 @@ import type { Cell } from "@/domain/typst/table/cell";
 import type { CellPosition } from "@/domain/typst/table/table";
 import { cn } from "@/lib/utils";
 import {
+  applyTableCellPatches,
   cellStrokeAt,
   selectCellRange,
   setActiveCell,
   tableEditorStore,
-  updateTable,
 } from "../store";
 import { createColumnTitle } from "../utils";
 
@@ -83,60 +82,6 @@ const pluginHost = createPluginHost<Cell>([
     getEmptyValue: () => ({ content: "" }),
   }),
 ]);
-
-const areCellsEqual = (a: Cell, b: Cell): boolean => {
-  const aAlignH = a.align?.horizontal;
-  const aAlignV = a.align?.vertical;
-  const bAlignH = b.align?.horizontal;
-  const bAlignV = b.align?.vertical;
-
-  return (
-    a.content === b.content &&
-    a.bold === b.bold &&
-    a.italic === b.italic &&
-    aAlignH === bAlignH &&
-    aAlignV === bAlignV
-  );
-};
-
-const applyGridPatches = (
-  table: ReturnType<typeof tableEditorStore>["table"],
-  patches: CellPatch<Cell>[],
-) => {
-  const nextRows = table.rows.slice();
-  const clonedRows = new Map<number, Cell[]>();
-  let hasChanges = false;
-
-  for (const { pos, value } of patches) {
-    const currentRow = table.rows[pos.row];
-    const currentCell = currentRow?.[pos.col];
-    if (!currentCell) {
-      continue;
-    }
-
-    if (areCellsEqual(currentCell, value)) {
-      continue;
-    }
-
-    let rowDraft = clonedRows.get(pos.row);
-    if (!rowDraft) {
-      rowDraft = currentRow.slice();
-      clonedRows.set(pos.row, rowDraft);
-      nextRows[pos.row] = rowDraft;
-    }
-    rowDraft[pos.col] = value;
-    hasChanges = true;
-  }
-
-  if (!hasChanges) {
-    return table;
-  }
-
-  return {
-    ...table,
-    rows: nextRows,
-  };
-};
 
 interface CellEditorProps {
   ctx: CellRenderContext<Cell>;
@@ -292,7 +237,7 @@ export function TableEditorGrid() {
           });
         }}
         onCellsChange={(patches) => {
-          updateTable((table) => applyGridPatches(table, patches));
+          applyTableCellPatches(patches);
         }}
         onEvent={pluginHost.onEvent}
         renderColHeader={({ index }) => (
