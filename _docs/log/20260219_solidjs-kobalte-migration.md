@@ -27,12 +27,14 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
 - 困りごと/対応:
   - サンドボックス制限で `pnpm test` / `pnpm build` が `spawn EPERM`。昇格実行で解消。
   - Kobalte `Select` 型の取り回しで object value が必要。`itemComponent` 方式に修正して型エラー解消。
+  - `TableEditorGrid` で `onInput` ごとに `commitEdit` していたため、入力が即終了して Enter 編集も不安定。セル editor でドラフト保持し、`Enter` / `Blur` commit・`Escape` cancel に修正。
 
 ## Summary
 
 - React/TanStack React Start/React Aria/react-datasheet-grid を除去し、SolidJS + TanStack Solid Router + Kobalte + `@shiguri/solid-grid` に移行。
 - `src/components/ui` を利用中コンポーネント分のみ再実装（`cva` + `cn`）。
 - テーブル編集・エクスポート動線を維持したまま Solid 実装へ移植。
+- セル編集 UX を安定化（Enter で編集開始後に input へフォーカス、入力途中で state が途切れない）。
 - 検証: `pnpm check` / `pnpm test` / `pnpm build` / `pnpm exec tsc --noEmit` 全通過。
 
 ## Next (必要に応じて)

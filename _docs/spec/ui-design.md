@@ -20,6 +20,7 @@
 - `onCellsChange` の patch を受け、`TableEditorState.table.rows` に反映する。
 - `onActiveCellChange` / `onSelectionChange` を `activeCell` / `selection` に同期する。
 - セル描画は `renderCell` で行い、`align` / `bold` / `italic` / stroke をクラスで反映する。
+- セル編集中の入力値は editor 内のドラフトとして保持し、`Enter` または `Blur` で確定、`Escape` で破棄する。
 
 ## ツールバー
 
@@ -76,3 +77,5 @@
 > **Spec change (2025-10-27)** テーブルエディタ画面は `react-datasheet-grid` を中心に構成し、アプリ状態は Zustand ストアで一元管理する。これに合わせてレイアウト、操作フロー、プロパティ編集 UI を具体化した。
 >
 > **Spec change (2026-02-19)** UI 基盤を SolidJS + Kobalte + `@shiguri/solid-grid` に移行。React/React Aria/react-datasheet-grid/Zustand 前提の記述を廃止し、現在の実装構成（signals store・Kobalte ラッパー・Solid Router）へ更新。
+>
+> **Spec change (2026-02-19)** グリッド編集時の確定タイミングを明確化。入力中はドラフトを保持し、`Enter` / `Blur` で反映、`Escape` でキャンセルする。

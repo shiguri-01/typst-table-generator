@@ -11,7 +11,7 @@ import {
   selectionPlugin,
 } from "@shiguri/solid-grid";
 import { cva } from "class-variance-authority";
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
 import type { Cell } from "@/domain/typst/table/cell";
 import type { CellPosition } from "@/domain/typst/table/table";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,70 @@ const applyGridPatches = (
   };
 };
 
+interface CellEditorProps {
+  ctx: CellRenderContext<Cell>;
+  class: string;
+}
+
+const CellEditor = (props: CellEditorProps) => {
+  const [draft, setDraft] = createSignal(props.ctx.value.content);
+  let inputRef: HTMLInputElement | undefined;
+  let closed = false;
+
+  const commit = () => {
+    if (closed) {
+      return;
+    }
+    closed = true;
+    props.ctx.commitEdit({
+      ...props.ctx.value,
+      content: draft(),
+    });
+  };
+
+  const cancel = () => {
+    if (closed) {
+      return;
+    }
+    closed = true;
+    props.ctx.cancelEditing();
+  };
+
+  onMount(() => {
+    queueMicrotask(() => {
+      inputRef?.focus();
+      inputRef?.select();
+    });
+  });
+
+  return (
+    <input
+      ref={inputRef}
+      value={draft()}
+      class={cn(props.class, "bg-bg")}
+      aria-label="cell input"
+      onInput={(event) => {
+        setDraft(event.currentTarget.value);
+      }}
+      onBlur={() => {
+        commit();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cancel();
+          return;
+        }
+
+        if (event.key === "Enter" && !event.isComposing) {
+          event.preventDefault();
+          commit();
+        }
+      }}
+    />
+  );
+};
+
 const renderCell = (ctx: CellRenderContext<Cell>) => {
   const state = tableEditorStore();
   const stroke = cellStrokeAt(state, { row: ctx.row, column: ctx.col });
@@ -91,28 +155,7 @@ const renderCell = (ctx: CellRenderContext<Cell>) => {
   });
 
   if (ctx.isEditing) {
-    return (
-      <input
-        value={ctx.value.content}
-        class={cn(styleClass, "bg-bg")}
-        aria-label="cell input"
-        onInput={(event) => {
-          ctx.commitEdit({
-            ...ctx.value,
-            content: event.currentTarget.value,
-          });
-        }}
-        onBlur={() => {
-          ctx.cancelEditing();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            ctx.cancelEditing();
-          }
-        }}
-      />
-    );
+    return <CellEditor ctx={ctx} class={styleClass} />;
   }
 
   return (
