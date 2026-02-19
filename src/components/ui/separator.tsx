@@ -1,26 +1,30 @@
-import {
-  Separator as Divider,
-  type SeparatorProps,
-} from "react-aria-components";
-import { twMerge } from "tailwind-merge";
+import { Separator as SeparatorPrimitive } from "@kobalte/core/separator";
+import type { ComponentProps } from "solid-js";
+import { splitProps } from "solid-js";
+import { cn } from "@/lib/utils";
 
-const Separator = ({
-  orientation = "horizontal",
-  className,
-  ...props
-}: SeparatorProps) => {
+type SeparatorPrimitiveProps = Omit<
+  ComponentProps<typeof SeparatorPrimitive>,
+  "class"
+>;
+
+interface SeparatorProps extends SeparatorPrimitiveProps {
+  class?: string;
+}
+
+export function Separator(props: SeparatorProps) {
+  const [local, rest] = splitProps(props, ["class", "orientation"]);
+  const isVertical = () => local.orientation === "vertical";
+
   return (
-    <Divider
-      className={twMerge(
-        "shrink-0 bg-border",
-        "forced-colors:bg-[ButtonBorder]",
-        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
-        className,
+    <SeparatorPrimitive
+      {...rest}
+      orientation={local.orientation}
+      class={cn(
+        "bg-border",
+        isVertical() ? "h-full w-px" : "h-px w-full",
+        local.class,
       )}
-      {...props}
     />
   );
-};
-
-export type { SeparatorProps };
-export { Separator };
+}

@@ -1,13 +1,40 @@
-import { createRouter } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+} from "@tanstack/solid-router";
+import { AppHeader } from "@/components/AppHeader";
+import { Container } from "@/components/ui/container";
+import { HomePage } from "@/pages/HomePage";
 
-// Import the generated route tree
-import { routeTree } from "./routeTree.gen";
+const rootRoute = createRootRoute({
+  component: () => (
+    <>
+      <AppHeader />
+      <Container class="py-6">
+        <Outlet />
+      </Container>
+    </>
+  ),
+});
 
-// Create a new router instance
-export const getRouter = () => {
-  return createRouter({
-    routeTree,
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-  });
-};
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  component: HomePage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute]);
+
+export const router = createRouter({
+  routeTree,
+  scrollRestoration: true,
+  defaultPreloadStaleTime: 0,
+});
+
+declare module "@tanstack/solid-router" {
+  interface Register {
+    router: typeof router;
+  }
+}

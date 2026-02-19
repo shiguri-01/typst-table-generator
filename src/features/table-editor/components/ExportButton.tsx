@@ -4,8 +4,7 @@ import {
   IconDownload,
   IconFile,
   IconFileExport,
-} from "@tabler/icons-react";
-import { useStore } from "@tanstack/react-store";
+} from "@tabler/icons-solidjs";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -18,45 +17,28 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { generateTypstCode } from "../export";
-import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
   exportStateSelector,
   setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
-  wrapFigureEnabledSelector,
-  wrapFigureOptionsSelector,
 } from "../store";
 import { copyToClipboard } from "../utils";
 
 export function ExportButton() {
-  const { lastExportedCode } = useStore(tableEditorStore, exportStateSelector);
-  const table = useStore(tableEditorStore, tableSelector);
-  const tableRenderingOptions = useStore(
-    tableEditorStore,
-    tableRenderingOptionsSelector,
-  );
-  const wrapFigureEnabled = useStore(
-    tableEditorStore,
-    wrapFigureEnabledSelector,
-  );
-  const wrapFigureOptions = useStore(
-    tableEditorStore,
-    wrapFigureOptionsSelector,
-  );
-
-  const generateCurrentTypstCode = () =>
-    generateTypstCode(
-      table,
-      tableRenderingOptions,
-      wrapFigureEnabled,
-      wrapFigureOptions,
+  const generateCurrentTypstCode = () => {
+    const state = tableEditorStore();
+    return generateTypstCode(
+      state.table,
+      state.tableRenderingOptions,
+      state.wrapFigure.enabled,
+      state.wrapFigure.figureOptions,
     );
+  };
 
   const handleExportTypst = () => {
     const code = generateCurrentTypstCode();
-
     updateExportedCode(code);
     setCopyError(false);
     setExportModal(true);
@@ -64,11 +46,9 @@ export function ExportButton() {
 
   const handleExportAndCopy = async () => {
     const code = generateCurrentTypstCode();
-
     updateExportedCode(code);
     const success = await copyToClipboard(code);
 
-    // If copy fails, show the modal as fallback so user can manually copy
     if (!success) {
       setCopyError(true);
       setExportModal(true);
@@ -79,24 +59,24 @@ export function ExportButton() {
 
   const handleExportAndDownload = () => {
     const code = generateCurrentTypstCode();
-
     updateExportedCode(code);
     const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "table.typ";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "table.typ";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
   };
 
   const handleCopyExported = async () => {
+    const { lastExportedCode } = exportStateSelector(tableEditorStore());
     if (!lastExportedCode) return;
+
     const success = await copyToClipboard(lastExportedCode);
 
-    // If copy fails, show the modal as fallback so user can manually copy
     if (!success) {
       setCopyError(true);
       setExportModal(true);
@@ -106,46 +86,53 @@ export function ExportButton() {
   };
 
   const handleDownloadExported = () => {
+    const { lastExportedCode } = exportStateSelector(tableEditorStore());
     if (!lastExportedCode) return;
 
     const blob = new Blob([lastExportedCode], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "table.typ";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "table.typ";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
   };
 
   const handleShowLastExport = () => {
+    const { lastExportedCode } = exportStateSelector(tableEditorStore());
     if (!lastExportedCode) return;
     setCopyError(false);
     setExportModal(true);
   };
 
+  const hasLastExport = () =>
+    exportStateSelector(tableEditorStore()).lastExportedCode !== null;
+
   return (
     <ButtonGroup>
-      <Button onPress={handleExportTypst}>
-        <IconFileExport data-slot="icon" aria-hidden />
+      <Button onClick={handleExportTypst}>
+        <IconFileExport class="h-4 w-4" aria-hidden />
         Export
       </Button>
 
       <Menu>
-        <MenuTrigger>
-          <Button aria-label="More export options">
-            <IconChevronDown data-slot="icon" aria-hidden />
-          </Button>
+        <MenuTrigger class="h-9 w-9" aria-label="More export options">
+          <IconChevronDown class="h-4 w-4" aria-hidden />
         </MenuTrigger>
-        <MenuContent popover={{ placement: "bottom end" }}>
+        <MenuContent>
           <MenuSection label="Quick Actions">
-            <MenuItem onAction={handleExportAndCopy}>
-              <IconCopy data-slot="icon" aria-hidden />
+            <MenuItem
+              onSelect={() => {
+                void handleExportAndCopy();
+              }}
+            >
+              <IconCopy class="h-4 w-4" aria-hidden />
               <MenuLabel>Export and Copy</MenuLabel>
             </MenuItem>
-            <MenuItem onAction={handleExportAndDownload}>
-              <IconDownload data-slot="icon" aria-hidden />
+            <MenuItem onSelect={handleExportAndDownload}>
+              <IconDownload class="h-4 w-4" aria-hidden />
               <MenuLabel>Export and Download</MenuLabel>
             </MenuItem>
           </MenuSection>
@@ -154,24 +141,26 @@ export function ExportButton() {
 
           <MenuSection label="Last export">
             <MenuItem
-              onAction={handleShowLastExport}
-              isDisabled={!lastExportedCode}
+              onSelect={handleShowLastExport}
+              disabled={!hasLastExport()}
             >
-              <IconFile data-slot="icon" aria-hidden />
+              <IconFile class="h-4 w-4" aria-hidden />
               <MenuLabel>View Code</MenuLabel>
             </MenuItem>
             <MenuItem
-              onAction={handleCopyExported}
-              isDisabled={!lastExportedCode}
+              onSelect={() => {
+                void handleCopyExported();
+              }}
+              disabled={!hasLastExport()}
             >
-              <IconCopy data-slot="icon" aria-hidden />
+              <IconCopy class="h-4 w-4" aria-hidden />
               <MenuLabel>Copy Code</MenuLabel>
             </MenuItem>
             <MenuItem
-              onAction={handleDownloadExported}
-              isDisabled={!lastExportedCode}
+              onSelect={handleDownloadExported}
+              disabled={!hasLastExport()}
             >
-              <IconDownload data-slot="icon" aria-hidden />
+              <IconDownload class="h-4 w-4" aria-hidden />
               <MenuLabel>Download .typ</MenuLabel>
             </MenuItem>
           </MenuSection>

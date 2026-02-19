@@ -1,16 +1,24 @@
-import type { TextFieldProps } from "react-aria-components";
-import { TextField as TextFieldPrimitive } from "react-aria-components";
-import { cx } from "@/lib/primitive";
-import { fieldStyles } from "./field";
+import * as TextFieldPrimitive from "@kobalte/core/text-field";
+import type { ComponentProps, JSX } from "solid-js";
+import { splitProps } from "solid-js";
+import { cn } from "@/lib/utils";
 
-const TextField = ({ className, ...props }: TextFieldProps) => {
+type TextFieldBaseProps = Omit<
+  ComponentProps<typeof TextFieldPrimitive.Root>,
+  "class"
+>;
+
+interface TextFieldProps extends TextFieldBaseProps {
+  class?: string;
+  children?: JSX.Element;
+}
+
+export function TextField(props: TextFieldProps) {
+  const [local, rest] = splitProps(props, ["class", "children"]);
+
   return (
-    <TextFieldPrimitive
-      data-slot="control"
-      className={cx(fieldStyles(), className)}
-      {...props}
-    />
+    <TextFieldPrimitive.Root {...rest} class={cn("grid gap-1.5", local.class)}>
+      {local.children}
+    </TextFieldPrimitive.Root>
   );
-};
-
-export { TextField };
+}

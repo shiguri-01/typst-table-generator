@@ -1,133 +1,85 @@
-import type {
-  DialogProps,
-  DialogTriggerProps,
-  ModalOverlayProps,
-} from "react-aria-components";
-import {
-  DialogTrigger as DialogTriggerPrimitive,
-  ModalOverlay,
-  Modal as ModalPrimitive,
-} from "react-aria-components";
-import { twJoin } from "tailwind-merge";
-import { cx } from "@/lib/primitive";
-import {
-  Dialog,
-  DialogBody,
-  DialogClose,
-  DialogCloseIcon,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./dialog";
+import * as Dialog from "@kobalte/core/dialog";
+import { IconX } from "@tabler/icons-solidjs";
+import type { JSX } from "solid-js";
+import { cn } from "@/lib/utils";
 
-const Modal = (props: DialogTriggerProps) => {
-  return <DialogTriggerPrimitive {...props} />;
-};
-
-const sizes = {
-  "2xs": "sm:max-w-2xs",
-  xs: "sm:max-w-xs",
-  sm: "sm:max-w-sm",
-  md: "sm:max-w-md",
-  lg: "sm:max-w-lg",
-  xl: "sm:max-w-xl",
-  "2xl": "sm:max-w-2xl",
-  "3xl": "sm:max-w-3xl",
-  "4xl": "sm:max-w-4xl",
-  "5xl": "sm:max-w-5xl",
-  fullscreen: "",
-};
-
-interface ModalContentProps
-  extends Omit<ModalOverlayProps, "className" | "children">,
-    Pick<DialogProps, "aria-label" | "aria-labelledby" | "role" | "children"> {
-  size?: keyof typeof sizes;
-  closeButton?: boolean;
-  isBlurred?: boolean;
-  className?: ModalOverlayProps["className"];
-  overlay?: Omit<ModalOverlayProps, "children">;
+interface ModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children?: JSX.Element;
 }
 
-const ModalContent = ({
-  className,
-  isDismissable: isDismissableInternal,
-  isBlurred = false,
-  children,
-  overlay,
-  size = "lg",
-  role = "dialog",
-  closeButton = true,
-  ...props
-}: ModalContentProps) => {
-  const isDismissable = isDismissableInternal ?? role !== "alertdialog";
+export function Modal(props: ModalProps) {
+  return (
+    <Dialog.Root open={props.open} onOpenChange={props.onOpenChange}>
+      {props.children}
+    </Dialog.Root>
+  );
+}
+
+interface ModalContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
+  size?: "md" | "4xl";
+  children?: JSX.Element;
+}
+
+export function ModalContent(props: ModalContentProps) {
+  const maxWidth = () => (props.size === "4xl" ? "max-w-4xl" : "max-w-lg");
 
   return (
-    <ModalOverlay
-      data-slot="modal-overlay"
-      isDismissable={isDismissable}
-      className={twJoin(
-        "fixed inset-0 z-50 h-(--visual-viewport-height,100vh) bg-black/15",
-        "grid grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr]",
-        size === "fullscreen" ? "md:p-3" : "md:p-4",
-        "entering:fade-in entering:animate-in entering:duration-300 entering:ease-out",
-        "exiting:fade-out exiting:animate-out exiting:ease-in",
-        isBlurred && "backdrop-blur-[1px] backdrop-filter",
-      )}
-      {...props}
-    >
-      <ModalPrimitive
-        data-slot="modal-content"
-        className={cx(
-          "row-start-2 w-full text-left align-middle",
-          "[--visual-viewport-vertical-padding:16px]",
-          size === "fullscreen"
-            ? "sm:rounded-md sm:[--visual-viewport-vertical-padding:16px]"
-            : "sm:rounded-xl sm:[--visual-viewport-vertical-padding:32px]",
-          "relative overflow-hidden bg-overlay text-overlay-fg",
-          "rounded-t-2xl shadow-lg ring ring-fg/5 dark:ring-border",
-          sizes[size],
-
-          "entering:slide-in-from-bottom sm:entering:zoom-in-95 sm:entering:slide-in-from-bottom-0 entering:animate-in entering:duration-300 entering:ease-out",
-          "exiting:slide-out-to-bottom sm:exiting:zoom-out-95 sm:exiting:slide-out-to-bottom-0 exiting:animate-out exiting:ease-in",
-          className,
+    <Dialog.Portal>
+      <Dialog.Overlay class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
+      <Dialog.Content
+        class={cn(
+          "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-overlay p-4 shadow-xl",
+          maxWidth(),
+          props.class,
         )}
-        {...props}
       >
-        <Dialog
-          role={role}
-          aria-label={props["aria-label"]}
-          aria-labelledby={props["aria-labelledby"]}
+        <Dialog.CloseButton
+          aria-label="Close dialog"
+          class="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-fg hover:bg-muted hover:text-fg"
         >
-          {(values) => (
-            <>
-              {typeof children === "function" ? children(values) : children}
-              {closeButton && <DialogCloseIcon isDismissable={isDismissable} />}
-            </>
-          )}
-        </Dialog>
-      </ModalPrimitive>
-    </ModalOverlay>
+          <IconX class="h-4 w-4" />
+        </Dialog.CloseButton>
+        {props.children}
+      </Dialog.Content>
+    </Dialog.Portal>
   );
-};
+}
 
-const ModalTrigger = DialogTrigger;
-const ModalHeader = DialogHeader;
-const ModalTitle = DialogTitle;
-const ModalDescription = DialogDescription;
-const ModalFooter = DialogFooter;
-const ModalBody = DialogBody;
-const ModalClose = DialogClose;
+export function ModalHeader(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} class={cn("mb-4", props.class)} />;
+}
 
-export {
-  Modal,
-  ModalTrigger,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalFooter,
-  ModalBody,
-  ModalClose,
-  ModalContent,
-};
+export function ModalTitle(props: JSX.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <Dialog.Title {...props} class={cn("text-lg font-semibold", props.class)} />
+  );
+}
+
+export function ModalBody(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} class={cn("space-y-4", props.class)} />;
+}
+
+export function ModalFooter(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      {...props}
+      class={cn("mt-4 flex items-center justify-end gap-2", props.class)}
+    />
+  );
+}
+
+export function ModalClose(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <Dialog.CloseButton
+      {...props}
+      class={cn(
+        "inline-flex h-9 items-center justify-center rounded-md border border-border px-3 text-sm hover:bg-muted",
+        props.class,
+      )}
+    >
+      {props.children ?? "Close"}
+    </Dialog.CloseButton>
+  );
+}

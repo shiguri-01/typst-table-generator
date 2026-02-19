@@ -1,4 +1,5 @@
-import { Derived, Store } from "@tanstack/react-store";
+import type { CellPatch } from "@shiguri/solid-grid";
+import { createStore, produce, reconcile } from "solid-js/store";
 import type {
   Align,
   HorizontalAlign,
@@ -6,7 +7,6 @@ import type {
 } from "@/domain/typst/alignment";
 import type { FigureOption } from "@/domain/typst/figure";
 import type { Cell } from "@/domain/typst/table/cell";
-import type { ColumnSpec } from "@/domain/typst/table/column";
 import {
   DEFAULT_FORMAT_TABLE_OPTIONS,
   type TableFormattingOptions,
@@ -44,17 +44,15 @@ export interface TableEditorState {
   table: Table;
   wrapFigure: WrapFigure;
   tableRenderingOptions: TableFormattingOptions;
-
   activeCell: CellPosition | null;
   selection: CellRange | null;
-
   export: ExportState;
 }
 
 const INITIAL_ROWS = 3;
 const INITIAL_COLUMNS = 3;
 
-export const tableEditorStore = new Store<TableEditorState>({
+const initialState: TableEditorState = {
   table: createEmptyTable(INITIAL_ROWS, INITIAL_COLUMNS),
   wrapFigure: {
     enabled: false,
@@ -69,22 +67,53 @@ export const tableEditorStore = new Store<TableEditorState>({
     showExportModal: false,
     copyError: false,
   },
+};
+
+const [tableEditorState, setTableEditorState] =
+  createStore<TableEditorState>(initialState);
+
+export const tableEditorStore = () => tableEditorState;
+
+const applyState = (updater: (state: TableEditorState) => TableEditorState) => {
+  const next = updater(tableEditorState);
+  if (next === tableEditorState) {
+    return;
+  }
+  setTableEditorState(reconcile(next));
+};
+
+const areCellsEqual = (a: Cell, b: Cell): boolean => {
+  const aAlignH = a.align?.horizontal;
+  const aAlignV = a.align?.vertical;
+  const bAlignH = b.align?.horizontal;
+  const bAlignV = b.align?.vertical;
+
+  return (
+    a.content === b.content &&
+    a.bold === b.bold &&
+    a.italic === b.italic &&
+    aAlignH === bAlignH &&
+    aAlignV === bAlignV
+  );
+};
+
+const mergeCellPatch = (currentCell: Cell, patchValue: Cell): Cell => ({
+  ...currentCell,
+  ...patchValue,
 });
 
-export const cellSelector =
-  (pos: CellPosition) =>
-  (state: TableEditorState): Cell | undefined =>
-    state.table.rows[pos.row]?.[pos.column];
-
-export const columnSpecSelector =
-  (columnIndex: number) =>
-  (state: TableEditorState): ColumnSpec | undefined =>
-    state.table.columnSpecs[columnIndex];
+export const cellSelector = (
+  state: TableEditorState,
+  pos: CellPosition,
+): Cell | undefined => state.table.rows[pos.row]?.[pos.column];
 
 const markExportAsStale =
   (updater: (state: TableEditorState) => TableEditorState) =>
   (state: TableEditorState): TableEditorState => {
     const newState = updater(state);
+    if (newState === state) {
+      return state;
+    }
     return {
       ...newState,
       export: {
@@ -94,8 +123,8 @@ const markExportAsStale =
     };
   };
 
-export const updateTable = (table: Table | ((prev: Table) => Table)) => {
-  tableEditorStore.setState(
+export const replaceTable = (table: Table | ((prev: Table) => Table)) => {
+  applyState(
     markExportAsStale((state) => {
       const updatedTable =
         typeof table === "function" ? table(state.table) : table;
@@ -104,8 +133,45 @@ export const updateTable = (table: Table | ((prev: Table) => Table)) => {
   );
 };
 
+export const applyTableCellPatches = (patches: CellPatch<Cell>[]) => {
+  if (patches.length === 0) {
+    return;
+  }
+
+  setTableEditorState(
+    produce((state) => {
+      const rows = state.table.rows as Cell[][];
+      let hasChanges = false;
+
+      for (const { pos, value } of patches) {
+        const row = rows[pos.row];
+        const currentCell = row?.[pos.col];
+        if (!currentCell) {
+          continue;
+        }
+
+        const nextCell = mergeCellPatch(currentCell, value);
+        if (areCellsEqual(currentCell, nextCell)) {
+          continue;
+        }
+
+        row[pos.col] = nextCell;
+        hasChanges = true;
+      }
+
+      if (!hasChanges) {
+        return;
+      }
+
+      if (state.export.lastExportedCode !== null) {
+        state.export.isStale = true;
+      }
+    }),
+  );
+};
+
 export const resetTable = () => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => ({
       ...state,
       table: createEmptyTable(INITIAL_ROWS, INITIAL_COLUMNS),
@@ -122,33 +188,19 @@ export type CellStroke = {
   left: boolean;
 };
 
-export const cellStrokes = new Derived<CellStroke[][]>({
-  deps: [tableEditorStore],
-  fn: () => {
-    const table = tableEditorStore.state.table;
-    const { row: rowStrokes, column: colStrokes } = table.strokes;
-    const strokes: CellStroke[][] = table.rows.map((row, rowIdx) =>
-      row.map((_, colIdx) => ({
-        top: rowStrokes[rowIdx] ?? false,
-        bottom: rowStrokes[rowIdx + 1] ?? false,
-        right: colStrokes[colIdx + 1] ?? false,
-        left: colStrokes[colIdx] ?? false,
-      })),
-    );
-
-    return strokes;
-  },
-});
-
-export const cellStrokeSelector =
-  (pos: CellPosition) =>
-  (state: CellStroke[][]): CellStroke =>
-    state[pos.row]?.[pos.column] ?? {
-      top: false,
-      bottom: false,
-      right: false,
-      left: false,
-    };
+export const cellStrokeAt = (
+  state: TableEditorState,
+  pos: CellPosition,
+): CellStroke => {
+  const { row, column } = pos;
+  const { strokes } = state.table;
+  return {
+    top: strokes.row[row] ?? false,
+    bottom: strokes.row[row + 1] ?? false,
+    right: strokes.column[column + 1] ?? false,
+    left: strokes.column[column] ?? false,
+  };
+};
 
 export const wrapFigureEnabledSelector = (state: TableEditorState) =>
   state.wrapFigure.enabled;
@@ -156,16 +208,15 @@ export const wrapFigureEnabledSelector = (state: TableEditorState) =>
 export const updateWrapFigureEnabled = (
   enabled: boolean | ((prev: boolean) => boolean),
 ) => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const prev = state.wrapFigure.enabled;
-      const newEnabled =
-        typeof enabled === "function" ? enabled(prev) : enabled;
+      const next = typeof enabled === "function" ? enabled(prev) : enabled;
       return {
         ...state,
         wrapFigure: {
           ...state.wrapFigure,
-          enabled: newEnabled,
+          enabled: next,
         },
       };
     }),
@@ -178,16 +229,15 @@ export const wrapFigureOptionsSelector = (state: TableEditorState) =>
 export const updateWrapFigureOptions = (
   options: FigureOption | ((prev: FigureOption) => FigureOption),
 ) => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const prev = state.wrapFigure.figureOptions;
-      const newOptions =
-        typeof options === "function" ? options(prev) : options;
+      const next = typeof options === "function" ? options(prev) : options;
       return {
         ...state,
         wrapFigure: {
           ...state.wrapFigure,
-          figureOptions: newOptions,
+          figureOptions: next,
         },
       };
     }),
@@ -199,51 +249,38 @@ export const updateTableRenderingOptions = (
     | TableFormattingOptions
     | ((prev: TableFormattingOptions) => TableFormattingOptions),
 ) => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const prev = state.tableRenderingOptions;
-      const newOptions =
-        typeof options === "function" ? options(prev) : options;
+      const next = typeof options === "function" ? options(prev) : options;
       return {
         ...state,
-        tableRenderingOptions: newOptions,
+        tableRenderingOptions: next,
       };
     }),
   );
 };
 
 export const setActiveCell = (pos: CellPosition) => {
-  tableEditorStore.setState((state) => ({
-    ...state,
-    activeCell: pos,
-  }));
+  applyState((state) => ({ ...state, activeCell: pos }));
 };
 
 export const clearActiveCell = () => {
-  tableEditorStore.setState((state) => ({
-    ...state,
-    activeCell: null,
-  }));
+  applyState((state) => ({ ...state, activeCell: null }));
 };
 
 export const selectCellRange = (range: CellRange) => {
-  tableEditorStore.setState((state) => {
-    const table = state.table;
-    const newRange = normalizeRange(table, range);
-    if (newRange) {
-      return {
-        ...state,
-        selection: newRange,
-      };
-    } else {
-      // 範囲外が指定された場合はクリア
-      return { ...state, selection: null };
-    }
+  applyState((state) => {
+    const nextRange = normalizeRange(state.table, range);
+    return {
+      ...state,
+      selection: nextRange,
+    };
   });
 };
 
 export const clearSelection = () => {
-  tableEditorStore.setState((state) => {
+  applyState((state) => {
     if (state.selection === null) {
       return state;
     }
@@ -257,7 +294,7 @@ export const clearSelection = () => {
 type SelectionUpdater = (table: Table, selection: CellRange) => Table;
 
 const runSelectionUpdate = (updater: SelectionUpdater) => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       if (!state.selection) {
         return state;
@@ -353,7 +390,6 @@ const applyHorizontalAlign = (
       return undefined;
     }
     if (prev.vertical !== undefined) {
-      // 縦方向の指定だけ残す
       return { vertical: prev.vertical };
     }
     return undefined;
@@ -374,7 +410,6 @@ const applyVerticalAlign = (
       return undefined;
     }
     if (prev.horizontal !== undefined) {
-      // 横方向の指定だけ残す
       return { horizontal: prev.horizontal };
     }
     return undefined;
@@ -487,7 +522,7 @@ export const clearSelectionBorders = () => {
 };
 
 export const insertRowAboveSelection = () => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const targetRow =
         state.selection !== null ? state.selection.start.row : 0;
@@ -498,7 +533,7 @@ export const insertRowAboveSelection = () => {
 };
 
 export const insertRowBelowSelection = () => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const targetRow =
         state.selection !== null
@@ -521,7 +556,7 @@ export const removeSelectedRows = () => {
 };
 
 export const insertColumnLeftOfSelection = () => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const targetColumn =
         state.selection !== null ? state.selection.start.column : 0;
@@ -532,7 +567,7 @@ export const insertColumnLeftOfSelection = () => {
 };
 
 export const insertColumnRightOfSelection = () => {
-  tableEditorStore.setState(
+  applyState(
     markExportAsStale((state) => {
       const targetColumn =
         state.selection !== null
@@ -558,9 +593,8 @@ export const removeSelectedColumns = () => {
   });
 };
 
-// Export state management
 export const setExportModal = (open: boolean) => {
-  tableEditorStore.setState((state) => ({
+  applyState((state) => ({
     ...state,
     export: {
       ...state.export,
@@ -571,7 +605,7 @@ export const setExportModal = (open: boolean) => {
 };
 
 export const updateExportedCode = (code: string) => {
-  tableEditorStore.setState((state) => ({
+  applyState((state) => ({
     ...state,
     export: {
       ...state.export,
@@ -582,7 +616,7 @@ export const updateExportedCode = (code: string) => {
 };
 
 export const setCopyError = (hasError: boolean) => {
-  tableEditorStore.setState((state) => ({
+  applyState((state) => ({
     ...state,
     export: {
       ...state.export,

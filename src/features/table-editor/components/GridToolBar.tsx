@@ -1,5 +1,4 @@
 import {
-  type Icon,
   IconAlignBoxCenterBottom,
   IconAlignBoxCenterMiddle,
   IconAlignBoxCenterTop,
@@ -20,21 +19,12 @@ import {
   IconRowInsertBottom,
   IconRowInsertTop,
   IconRowRemove,
-} from "@tabler/icons-react";
-import { useStore } from "@tanstack/react-store";
-import {
-  Group,
-  type GroupProps,
-  type Key,
-  type Selection,
-  ToggleButtonGroup,
-  Toolbar,
-} from "react-aria-components";
+} from "@tabler/icons-solidjs";
+import { type Component, createMemo, For, type JSX } from "solid-js";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import type { HorizontalAlign, VerticalAlign } from "@/domain/typst/alignment";
-import { cx } from "@/lib/primitive";
 import { cn } from "@/lib/utils";
 import { type CellRange, getCellPositions, isSingleCell } from "../cell-range";
 import {
@@ -58,67 +48,6 @@ import {
 } from "../store";
 import { cellName } from "../utils";
 
-type ToggleSelection = Selection;
-
-export function GridToolBar() {
-  const selectionSummary = useSelectionFormattingSummary();
-  const hasSelection = selectionSummary.selection !== null;
-
-  return (
-    <Toolbar className="flex gap-6 px-4 py-2" aria-label="table editor toolbar">
-      <SelectionIndicator />
-      <ToolbarSeparator />
-      <AlignControls summary={selectionSummary} hasSelection={hasSelection} />
-      <ToolbarSeparator />
-      <FormatControls summary={selectionSummary} hasSelection={hasSelection} />
-      <ToolbarSeparator />
-      <BorderControls hasSelection={hasSelection} />
-      <ToolbarSeparator />
-      <RowColControls hasSelection={hasSelection} />
-    </Toolbar>
-  );
-}
-
-type ToolbarGroupProps = GroupProps & {
-  groupHeader: string;
-};
-
-function ToolbarGroup({
-  className,
-  children,
-  groupHeader,
-  ...rest
-}: ToolbarGroupProps) {
-  return (
-    <Group
-      {...rest}
-      className={cx(
-        ["[--gutter:--spacing(2)]", "grid gap-(--gutter) place-content-start"],
-        className,
-      )}
-      aria-label={rest["aria-label"] ?? groupHeader}
-    >
-      {(renderProps) => (
-        <>
-          <div className="text-sm font-medium px-1">{groupHeader}</div>
-          {typeof children === "function"
-            ? children({ ...renderProps, defaultChildren: null })
-            : children}
-        </>
-      )}
-    </Group>
-  );
-}
-
-function ToolbarSeparator() {
-  return <Separator orientation="vertical" className="h-[stretch] my-2" />;
-}
-
-const toggleExtraStyles = cx([
-  "[--toggle-selected-bg:var(--color-primary)] [--toggle-selected-fg:var(--color-primary-fg)]",
-  "selected:bg-(--toggle-selected-bg) selected:text-(--toggle-selected-fg) selected:hover:bg-(--toggle-selected-bg)/90",
-]);
-
 type TriState = "all" | "mixed" | "none";
 
 type SelectionFormattingSummary = {
@@ -141,462 +70,379 @@ const EMPTY_SUMMARY: SelectionFormattingSummary = {
   verticalMixed: false,
 };
 
-// Collect selection formatting stats once so both align/format controls share a single store scan.
-function useSelectionFormattingSummary(): SelectionFormattingSummary {
-  return useStore(tableEditorStore, (state) => {
-    const { selection, table } = state;
-    if (!selection) {
-      return EMPTY_SUMMARY;
+const toolbarGroupClass = "grid gap-2 place-content-start";
+
+const calcSelectionSummary = (): SelectionFormattingSummary => {
+  const state = tableEditorStore();
+  const { selection, table } = state;
+
+  if (!selection) {
+    return EMPTY_SUMMARY;
+  }
+
+  const positions = getCellPositions(selection);
+  let firstHorizontal = true;
+  let horizontalValue: HorizontalAlign | null = null;
+  let horizontalMixed = false;
+
+  let firstVertical = true;
+  let verticalValue: VerticalAlign | null = null;
+  let verticalMixed = false;
+
+  let boldAll = true;
+  let boldAny = false;
+  let italicAll = true;
+  let italicAny = false;
+  let visitedCount = 0;
+
+  for (const pos of positions) {
+    const cell = table.rows[pos.row]?.[pos.column];
+    if (!cell) {
+      continue;
+    }
+    visitedCount += 1;
+
+    const cellHorizontal = cell.align?.horizontal ?? null;
+    if (firstHorizontal) {
+      horizontalValue = cellHorizontal;
+      firstHorizontal = false;
+    } else if (horizontalValue !== cellHorizontal) {
+      horizontalMixed = true;
     }
 
-    const positions = getCellPositions(selection);
-    let firstHorizontal = true;
-    let horizontalValue: HorizontalAlign | null = null;
-    let horizontalMixed = false;
-
-    let firstVertical = true;
-    let verticalValue: VerticalAlign | null = null;
-    let verticalMixed = false;
-
-    let boldAll = true;
-    let boldAny = false;
-    let italicAll = true;
-    let italicAny = false;
-
-    for (const pos of positions) {
-      const cell = table.rows[pos.row]?.[pos.column];
-      if (!cell) {
-        continue;
-      }
-
-      const cellHorizontal = cell.align?.horizontal ?? null;
-      if (firstHorizontal) {
-        horizontalValue = cellHorizontal;
-        firstHorizontal = false;
-      } else if (horizontalValue !== cellHorizontal) {
-        horizontalMixed = true;
-      }
-
-      const cellVertical = cell.align?.vertical ?? null;
-      if (firstVertical) {
-        verticalValue = cellVertical;
-        firstVertical = false;
-      } else if (verticalValue !== cellVertical) {
-        verticalMixed = true;
-      }
-
-      const cellBold = Boolean(cell.bold);
-      boldAny = boldAny || cellBold;
-      boldAll = boldAll && cellBold;
-
-      const cellItalic = Boolean(cell.italic);
-      italicAny = italicAny || cellItalic;
-      italicAll = italicAll && cellItalic;
+    const cellVertical = cell.align?.vertical ?? null;
+    if (firstVertical) {
+      verticalValue = cellVertical;
+      firstVertical = false;
+    } else if (verticalValue !== cellVertical) {
+      verticalMixed = true;
     }
 
-    const bold: TriState = boldAll ? "all" : boldAny ? "mixed" : "none";
-    const italic: TriState = italicAll ? "all" : italicAny ? "mixed" : "none";
+    const cellBold = Boolean(cell.bold);
+    boldAny = boldAny || cellBold;
+    boldAll = boldAll && cellBold;
 
-    return {
-      selection,
-      bold,
-      italic,
-      horizontal: horizontalMixed ? null : horizontalValue,
-      horizontalMixed,
-      vertical: verticalMixed ? null : verticalValue,
-      verticalMixed,
-    };
-  });
+    const cellItalic = Boolean(cell.italic);
+    italicAny = italicAny || cellItalic;
+    italicAll = italicAll && cellItalic;
+  }
+
+  const bold: TriState =
+    visitedCount === 0 ? "none" : boldAll ? "all" : boldAny ? "mixed" : "none";
+  const italic: TriState =
+    visitedCount === 0
+      ? "none"
+      : italicAll
+        ? "all"
+        : italicAny
+          ? "mixed"
+          : "none";
+
+  return {
+    selection,
+    bold,
+    italic,
+    horizontal: horizontalMixed ? null : horizontalValue,
+    horizontalMixed,
+    vertical: verticalMixed ? null : verticalValue,
+    verticalMixed,
+  };
+};
+
+interface ToolbarGroupProps {
+  groupHeader: string;
+  class?: string;
+  children?: JSX.Element;
+}
+
+function ToolbarGroup(props: ToolbarGroupProps) {
+  return (
+    <section
+      class={cn(toolbarGroupClass, props.class)}
+      aria-label={props.groupHeader}
+    >
+      <div class="px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">
+        {props.groupHeader}
+      </div>
+      {props.children}
+    </section>
+  );
+}
+
+function ToolbarSeparator() {
+  return <Separator orientation="vertical" class="mx-1 h-auto min-h-14" />;
 }
 
 function SelectionIndicator() {
-  const selected = useStore(tableEditorStore, (state) => state.selection);
+  const selected = createMemo(() => tableEditorStore().selection);
+  const startName = createMemo(() => {
+    const value = selected();
+    return value ? cellName(value.start) : null;
+  });
+  const endName = createMemo(() => {
+    const value = selected();
+    return value ? cellName(value.end) : null;
+  });
+  const isRange = createMemo(() => {
+    const value = selected();
+    return value ? !isSingleCell(value) : false;
+  });
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-between min-w-20">
-      <div className="shrink-0 text-sm">selection</div>
-      <div
-        className={cn(
-          "flex-1 mb-2",
-          "grid place-content-center place-items-center",
-          "text-base font-medium",
-        )}
-      >
-        {!selected && <div className="text-muted-fg">None</div>}
-
-        {selected && <div>{cellName(selected.start)}</div>}
-        {selected && !isSingleCell(selected) && (
-          <div>{cellName(selected.end)}</div>
-        )}
+    <div class="flex min-w-20 flex-col items-center justify-between gap-2">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted-fg">
+        selection
+      </div>
+      <div class="grid min-h-11 place-items-center text-sm font-medium">
+        {!selected() && <div class="text-muted-fg">None</div>}
+        {startName() && <div>{startName()}</div>}
+        {isRange() && endName() && <div>{endName()}</div>}
       </div>
     </div>
   );
 }
 
-type ToggleGroupItem<K extends string> = {
+type AlignItem<K extends string> = {
   id: K;
   ariaLabel: string;
-  icon: Icon;
+  icon: Component<{ class?: string }>;
 };
 
-type AlignControlsProps = {
+const horizontalItems: AlignItem<HorizontalAlign>[] = [
+  { id: "left", ariaLabel: "align left", icon: IconAlignLeft2 },
+  { id: "center", ariaLabel: "align center", icon: IconAlignCenter },
+  { id: "right", ariaLabel: "align right", icon: IconAlignRight2 },
+];
+
+const verticalItems: AlignItem<VerticalAlign>[] = [
+  { id: "top", ariaLabel: "align top", icon: IconAlignBoxCenterTop },
+  {
+    id: "horizon",
+    ariaLabel: "align middle",
+    icon: IconAlignBoxCenterMiddle,
+  },
+  {
+    id: "bottom",
+    ariaLabel: "align bottom",
+    icon: IconAlignBoxCenterBottom,
+  },
+];
+
+function AlignControls(props: {
   summary: SelectionFormattingSummary;
   hasSelection: boolean;
-};
-
-const getSingleSelectionKey = (selection: ToggleSelection): Key | null => {
-  if (selection === "all") {
-    return null;
-  }
-  const keys = Array.from(selection);
-  if (keys.length !== 1) {
-    return null;
-  }
-  return keys[0];
-};
-
-const isHorizontalAlignKey = (key: Key): key is HorizontalAlign => {
-  return key === "left" || key === "center" || key === "right";
-};
-
-const isVerticalAlignKey = (key: Key): key is VerticalAlign => {
-  return key === "top" || key === "horizon" || key === "bottom";
-};
-
-function AlignControls({ summary, hasSelection }: AlignControlsProps) {
-  const horizontalSelectedKey =
-    !summary.horizontalMixed && summary.horizontal ? summary.horizontal : null;
-  const verticalSelectedKey =
-    !summary.verticalMixed && summary.vertical ? summary.vertical : null;
-
-  const horizontalSelectedKeys = horizontalSelectedKey
-    ? new Set<HorizontalAlign>([horizontalSelectedKey])
-    : new Set<HorizontalAlign>();
-  const verticalSelectedKeys = verticalSelectedKey
-    ? new Set<VerticalAlign>([verticalSelectedKey])
-    : new Set<VerticalAlign>();
-
-  const handleHorizontalChange = (keys: ToggleSelection) => {
-    if (!hasSelection) {
-      return;
-    }
-    const key = getSingleSelectionKey(keys);
-    if (key === null) {
-      setSelectionHorizontalAlign(null);
-      return;
-    }
-    if (isHorizontalAlignKey(key)) {
-      setSelectionHorizontalAlign(key);
-    }
-  };
-
-  const handleVerticalChange = (keys: ToggleSelection) => {
-    if (!hasSelection) {
-      return;
-    }
-    const key = getSingleSelectionKey(keys);
-    if (key === null) {
-      setSelectionVerticalAlign(null);
-      return;
-    }
-    if (isVerticalAlignKey(key)) {
-      setSelectionVerticalAlign(key);
-    }
-  };
-
-  const horizontalItem: ToggleGroupItem<HorizontalAlign>[] = [
-    {
-      icon: IconAlignLeft2,
-      id: "left",
-      ariaLabel: "align left",
-    },
-    {
-      icon: IconAlignCenter,
-      id: "center",
-      ariaLabel: "align center",
-    },
-    {
-      icon: IconAlignRight2,
-      id: "right",
-      ariaLabel: "align right",
-    },
-  ];
-
-  const verticalItem: ToggleGroupItem<VerticalAlign>[] = [
-    {
-      icon: IconAlignBoxCenterTop,
-      id: "top",
-      ariaLabel: "align top",
-    },
-    {
-      icon: IconAlignBoxCenterMiddle,
-      id: "horizon",
-      ariaLabel: "align middle",
-    },
-    {
-      icon: IconAlignBoxCenterBottom,
-      id: "bottom",
-      ariaLabel: "align bottom",
-    },
-  ];
-
+}) {
   return (
-    <ToolbarGroup groupHeader="align" aria-label="cell alignment">
-      <ToggleButtonGroup
-        className="flex gap-(--gutter)"
-        selectionMode="single"
-        aria-label="horizontal align"
-        selectedKeys={horizontalSelectedKeys}
-        onSelectionChange={handleHorizontalChange}
-        isDisabled={!hasSelection}
-      >
-        {horizontalItem.map((item) => (
-          <Toggle
-            key={item.id}
-            intent="plain"
-            size="sq-sm"
-            className={toggleExtraStyles}
-            id={item.id}
-            aria-label={item.ariaLabel}
-            isDisabled={!hasSelection}
-          >
-            <item.icon />
-          </Toggle>
-        ))}
-      </ToggleButtonGroup>
-
-      <ToggleButtonGroup
-        className="flex gap-(--gutter)"
-        selectionMode="single"
-        aria-label="vertical align"
-        selectedKeys={verticalSelectedKeys}
-        onSelectionChange={handleVerticalChange}
-        isDisabled={!hasSelection}
-      >
-        {verticalItem.map((item) => (
-          <Toggle
-            key={item.id}
-            intent="plain"
-            size="sq-sm"
-            className={toggleExtraStyles}
-            id={item.id}
-            aria-label={item.ariaLabel}
-            isDisabled={!hasSelection}
-          >
-            <item.icon />
-          </Toggle>
-        ))}
-      </ToggleButtonGroup>
+    <ToolbarGroup groupHeader="align" class="gap-1">
+      <div class="flex gap-1">
+        <For each={horizontalItems}>
+          {(item) => (
+            <Toggle
+              aria-label={item.ariaLabel}
+              pressed={props.summary.horizontal === item.id}
+              disabled={!props.hasSelection}
+              onChange={(pressed: boolean) => {
+                if (!props.hasSelection) return;
+                setSelectionHorizontalAlign(pressed ? item.id : null);
+              }}
+            >
+              <item.icon class="h-4 w-4" />
+            </Toggle>
+          )}
+        </For>
+      </div>
+      <div class="flex gap-1">
+        <For each={verticalItems}>
+          {(item) => (
+            <Toggle
+              aria-label={item.ariaLabel}
+              pressed={props.summary.vertical === item.id}
+              disabled={!props.hasSelection}
+              onChange={(pressed: boolean) => {
+                if (!props.hasSelection) return;
+                setSelectionVerticalAlign(pressed ? item.id : null);
+              }}
+            >
+              <item.icon class="h-4 w-4" />
+            </Toggle>
+          )}
+        </For>
+      </div>
     </ToolbarGroup>
   );
 }
 
-type FormatControlsProps = {
+function FormatControls(props: {
   summary: SelectionFormattingSummary;
   hasSelection: boolean;
-};
-
-function FormatControls({ summary, hasSelection }: FormatControlsProps) {
-  const boldMixed = summary.bold === "mixed";
-  const italicMixed = summary.italic === "mixed";
-
+}) {
   return (
-    <ToolbarGroup groupHeader="format" aria-label="cell format">
-      <div className="flex gap-(--gutter)">
+    <ToolbarGroup groupHeader="format">
+      <div class="flex gap-1">
         <Toggle
-          intent="plain"
-          size="sq-sm"
-          className={toggleExtraStyles}
           aria-label="bold"
-          isDisabled={!hasSelection}
-          isSelected={summary.bold === "all"}
-          aria-pressed={boldMixed ? "mixed" : undefined}
-          onChange={(selected) => {
-            if (!hasSelection) return;
-            setSelectionBold(selected);
+          pressed={props.summary.bold === "all"}
+          disabled={!props.hasSelection}
+          onChange={(pressed: boolean) => {
+            if (!props.hasSelection) return;
+            setSelectionBold(pressed);
           }}
         >
-          <IconBold />
+          <IconBold class="h-4 w-4" />
         </Toggle>
         <Toggle
-          intent="plain"
-          size="sq-sm"
-          className={toggleExtraStyles}
           aria-label="italic"
-          isDisabled={!hasSelection}
-          isSelected={summary.italic === "all"}
-          aria-pressed={italicMixed ? "mixed" : undefined}
-          onChange={(selected) => {
-            if (!hasSelection) return;
-            setSelectionItalic(selected);
+          pressed={props.summary.italic === "all"}
+          disabled={!props.hasSelection}
+          onChange={(pressed: boolean) => {
+            if (!props.hasSelection) return;
+            setSelectionItalic(pressed);
           }}
         >
-          <IconItalic />
+          <IconItalic class="h-4 w-4" />
         </Toggle>
       </div>
     </ToolbarGroup>
   );
 }
 
-type BorderControlsProps = { hasSelection: boolean };
-
-function BorderControls({ hasSelection }: BorderControlsProps) {
+function BorderControls(props: { hasSelection: boolean }) {
   return (
-    <ToolbarGroup groupHeader="border" aria-label="cell border">
-      <div
-        className="
-          grid grid-cols-3 gap-(--gutter)
-          [grid-template-areas:'left_right_all''top_bottom_none']
-        "
-      >
+    <ToolbarGroup groupHeader="border">
+      <div class="grid grid-cols-3 gap-1">
         <Button
-          className="[grid-area:right]"
-          intent="outline"
-          size="sq-md"
-          aria-label="border right"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            setSelectionBorderRight();
-          }}
-        >
-          <IconBorderRightPlus />
-        </Button>
-        <Button
-          className="[grid-area:left]"
           intent="outline"
           size="sq-md"
           aria-label="border left"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            setSelectionBorderLeft();
-          }}
+          disabled={!props.hasSelection}
+          onClick={setSelectionBorderLeft}
         >
-          <IconBorderLeftPlus />
+          <IconBorderLeftPlus class="h-4 w-4" />
         </Button>
         <Button
-          className="[grid-area:top]"
           intent="outline"
           size="sq-md"
           aria-label="border top"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            setSelectionBorderTop();
-          }}
+          disabled={!props.hasSelection}
+          onClick={setSelectionBorderTop}
         >
-          <IconBorderTopPlus />
+          <IconBorderTopPlus class="h-4 w-4" />
         </Button>
         <Button
-          className="[grid-area:bottom]"
+          intent="outline"
+          size="sq-md"
+          aria-label="border right"
+          disabled={!props.hasSelection}
+          onClick={setSelectionBorderRight}
+        >
+          <IconBorderRightPlus class="h-4 w-4" />
+        </Button>
+        <Button
           intent="outline"
           size="sq-md"
           aria-label="border bottom"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            setSelectionBorderBottom();
-          }}
+          disabled={!props.hasSelection}
+          onClick={setSelectionBorderBottom}
         >
-          <IconBorderBottomPlus />
+          <IconBorderBottomPlus class="h-4 w-4" />
         </Button>
         <Button
-          className="[grid-area:all]"
           intent="outline"
           size="sq-md"
           aria-label="border all"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            setSelectionBorderAll();
-          }}
+          disabled={!props.hasSelection}
+          onClick={setSelectionBorderAll}
         >
-          <IconBorderAll />
+          <IconBorderAll class="h-4 w-4" />
         </Button>
         <Button
-          className="[grid-area:none]"
           intent="outline"
           size="sq-md"
           aria-label="border none"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            clearSelectionBorders();
-          }}
+          disabled={!props.hasSelection}
+          onClick={clearSelectionBorders}
         >
-          <IconBorderNone />
+          <IconBorderNone class="h-4 w-4" />
         </Button>
       </div>
     </ToolbarGroup>
   );
 }
 
-type RowColControlsProps = { hasSelection: boolean };
-
-function RowColControls({ hasSelection }: RowColControlsProps) {
+function RowColControls(props: { hasSelection: boolean }) {
   return (
-    <ToolbarGroup groupHeader="row / col" aria-label="rows and columns">
-      <div className="grid grid-cols-3 gap-(--gutter)">
+    <ToolbarGroup groupHeader="row / col">
+      <div class="grid grid-cols-3 gap-1">
         <Button
           intent="outline"
           size="sq-md"
           aria-label="add row above"
-          onPress={insertRowAboveSelection}
+          onClick={insertRowAboveSelection}
         >
-          <IconRowInsertTop />
+          <IconRowInsertTop class="h-4 w-4" />
         </Button>
         <Button
           intent="outline"
           size="sq-md"
           aria-label="add row below"
-          onPress={insertRowBelowSelection}
+          onClick={insertRowBelowSelection}
         >
-          <IconRowInsertBottom />
+          <IconRowInsertBottom class="h-4 w-4" />
         </Button>
         <Button
           intent="outline"
           size="sq-md"
           aria-label="remove row"
-          className="hover:text-danger"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            removeSelectedRows();
-          }}
+          disabled={!props.hasSelection}
+          onClick={removeSelectedRows}
         >
-          <IconRowRemove />
+          <IconRowRemove class="h-4 w-4" />
         </Button>
         <Button
           intent="outline"
           size="sq-md"
           aria-label="add column left"
-          onPress={insertColumnLeftOfSelection}
+          onClick={insertColumnLeftOfSelection}
         >
-          <IconColumnInsertLeft />
+          <IconColumnInsertLeft class="h-4 w-4" />
         </Button>
         <Button
           intent="outline"
           size="sq-md"
           aria-label="add column right"
-          onPress={insertColumnRightOfSelection}
+          onClick={insertColumnRightOfSelection}
         >
-          <IconColumnInsertRight />
+          <IconColumnInsertRight class="h-4 w-4" />
         </Button>
         <Button
           intent="outline"
           size="sq-md"
           aria-label="remove column"
-          className="hover:text-danger"
-          isDisabled={!hasSelection}
-          onPress={() => {
-            if (!hasSelection) return;
-            removeSelectedColumns();
-          }}
+          disabled={!props.hasSelection}
+          onClick={removeSelectedColumns}
         >
-          <IconColumnRemove />
+          <IconColumnRemove class="h-4 w-4" />
         </Button>
       </div>
     </ToolbarGroup>
+  );
+}
+
+export function GridToolBar() {
+  const summary = createMemo(calcSelectionSummary);
+  const hasSelection = createMemo(() => summary().selection !== null);
+
+  return (
+    <div class="flex flex-wrap items-stretch gap-2 rounded-md border border-border bg-bg p-2">
+      <SelectionIndicator />
+      <ToolbarSeparator />
+      <AlignControls summary={summary()} hasSelection={hasSelection()} />
+      <ToolbarSeparator />
+      <FormatControls summary={summary()} hasSelection={hasSelection()} />
+      <ToolbarSeparator />
+      <BorderControls hasSelection={hasSelection()} />
+      <ToolbarSeparator />
+      <RowColControls hasSelection={hasSelection()} />
+    </div>
   );
 }

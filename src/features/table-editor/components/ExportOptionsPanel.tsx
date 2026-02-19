@@ -1,18 +1,10 @@
-import { useStore } from "@tanstack/react-store";
-import type { Key } from "react-aria-components";
+import { createMemo } from "solid-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Code } from "@/components/ui/code";
 import { Description, Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectDescription,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-} from "@/components/ui/select";
+import { Select, type SelectOption } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnsArgStyle } from "@/domain/typst/table/render-table";
 import {
@@ -20,19 +12,11 @@ import {
   updateTableRenderingOptions,
   updateWrapFigureEnabled,
   updateWrapFigureOptions,
-  wrapFigureEnabledSelector,
-  wrapFigureOptionsSelector,
 } from "../store";
 
 const ESCAPE_INLINE_MARKERS = ["#", "$", "[", "]", "@"] as const;
 
-type ColumnStyleOption = {
-  id: ColumnsArgStyle;
-  label: string;
-  description: React.ReactNode;
-};
-
-const COLUMN_STYLE_OPTIONS: ColumnStyleOption[] = [
+const COLUMN_STYLE_OPTIONS: SelectOption[] = [
   {
     id: "autoArray",
     label: "columns: (auto, auto, ...)",
@@ -50,38 +34,20 @@ const COLUMN_STYLE_OPTIONS: ColumnStyleOption[] = [
 ];
 
 export function ExportOptionsPanel() {
-  const wrapFigureEnabled = useStore(
-    tableEditorStore,
-    wrapFigureEnabledSelector,
+  const wrapFigureEnabled = createMemo(
+    () => tableEditorStore().wrapFigure.enabled,
   );
-  const figureOptions = useStore(tableEditorStore, wrapFigureOptionsSelector);
-  const tableFormattingOptions = useStore(
-    tableEditorStore,
-    (state) => state.tableRenderingOptions,
+  const figureOptions = createMemo(
+    () => tableEditorStore().wrapFigure.figureOptions,
+  );
+  const tableFormattingOptions = createMemo(
+    () => tableEditorStore().tableRenderingOptions,
   );
 
-  const handleWrapFigureToggle = (isSelected: boolean) => {
-    updateWrapFigureEnabled(isSelected);
-  };
-
-  const handleFigureOptionChange =
-    (field: "caption" | "ref") => (value: string) => {
-      updateWrapFigureOptions((prev) => {
-        const next = { ...prev };
-        if (value === "") {
-          delete next[field];
-        } else {
-          next[field] = value;
-        }
-        return next;
-      });
-    };
-
-  const handleColumnsArgStyleChange = (key: Key | null) => {
-    if (key == null) return;
+  const handleColumnsArgStyleChange = (value: string) => {
     updateTableRenderingOptions((prev) => ({
       ...prev,
-      columnsArgStyle: key as ColumnsArgStyle,
+      columnsArgStyle: value as ColumnsArgStyle,
     }));
   };
 
@@ -92,66 +58,82 @@ export function ExportOptionsPanel() {
     }));
   };
 
-  const escapeEnabled = tableFormattingOptions.escapeCellContent !== false;
-  const columnsArgStyle = tableFormattingOptions.columnsArgStyle ?? "autoArray";
+  const escapeEnabled = createMemo(
+    () => tableFormattingOptions().escapeCellContent !== false,
+  );
+  const columnsArgStyle = createMemo(
+    () => tableFormattingOptions().columnsArgStyle ?? "autoArray",
+  );
 
   return (
-    <Card className="max-w-sm">
+    <Card class="max-w-sm">
       <CardHeader>
         <CardTitle>Export options</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <Checkbox isSelected={escapeEnabled} onChange={handleEscapeToggle}>
-          <Label className="font-medium">Escape symbols in cells</Label>
-          <Description>
-            Escapes <Code>#</Code>, <Code>$</Code>, <Code>[</Code>,{" "}
-            <Code>]</Code>, and <Code>@</Code> in table cells.
-          </Description>
+      <CardContent class="space-y-6">
+        <Checkbox checked={escapeEnabled()} onChange={handleEscapeToggle}>
+          <div class="space-y-1">
+            <div class="text-sm font-medium">Escape symbols in cells</div>
+            <Description>
+              Escapes <Code>#</Code>, <Code>$</Code>, <Code>[</Code>,{" "}
+              <Code>]</Code>, and <Code>@</Code> in table cells.
+            </Description>
+          </div>
         </Checkbox>
 
         <Select
-          value={columnsArgStyle}
+          value={columnsArgStyle()}
           onChange={handleColumnsArgStyleChange}
+          options={COLUMN_STYLE_OPTIONS}
+          label="Columns argument"
           aria-label="Columns argument"
           placeholder="Choose columns argument"
-        >
-          <Label>Columns argument</Label>
-          <SelectTrigger />
-          <SelectContent items={COLUMN_STYLE_OPTIONS}>
-            {(item: ColumnStyleOption) => (
-              <SelectItem id={item.id} textValue={item.label}>
-                <SelectLabel>{item.label}</SelectLabel>
-                <SelectDescription>{item.description}</SelectDescription>
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+        />
 
-        <div>
+        <div class="space-y-3">
           <Checkbox
-            isSelected={wrapFigureEnabled}
-            onChange={handleWrapFigureToggle}
-            className="mb-3"
+            checked={wrapFigureEnabled()}
+            onChange={updateWrapFigureEnabled}
           >
-            <Label className="font-medium">
+            <span class="text-sm font-medium">
               Wrap in <Code>figure</Code>
-            </Label>
+            </span>
           </Checkbox>
-          <div className="ml-4 border-l border-border pl-4 space-y-3">
+          <div class="ml-4 space-y-3 border-l border-border pl-4">
             <TextField
-              value={figureOptions.caption ?? ""}
-              onChange={handleFigureOptionChange("caption")}
-              isDisabled={!wrapFigureEnabled}
+              value={figureOptions().caption ?? ""}
+              onChange={(value: string) => {
+                updateWrapFigureOptions((prev) => {
+                  const next = { ...prev };
+                  if (value === "") {
+                    delete next.caption;
+                  } else {
+                    next.caption = value;
+                  }
+                  return next;
+                });
+              }}
+              disabled={!wrapFigureEnabled()}
             >
-              <Label htmlFor="figure-caption">Caption</Label>
+              <Label for="figure-caption">Caption</Label>
               <Input id="figure-caption" aria-label="figure caption" />
             </TextField>
             <TextField
-              value={figureOptions.ref ?? ""}
-              onChange={handleFigureOptionChange("ref")}
-              isDisabled={!wrapFigureEnabled}
+              value={figureOptions().ref ?? ""}
+              onChange={(value: string) => {
+                updateWrapFigureOptions((prev) => {
+                  const next = { ...prev };
+                  if (value === "") {
+                    delete next.ref;
+                  } else {
+                    next.ref = value;
+                  }
+                  return next;
+                });
+              }}
+              disabled={!wrapFigureEnabled()}
             >
-              <Label htmlFor="figure-ref">Reference label</Label>
+              <Label for="figure-ref">Reference label</Label>
               <Input id="figure-ref" aria-label="figure reference" />
             </TextField>
           </div>

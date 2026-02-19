@@ -1,12 +1,6 @@
-import type { ComponentProps } from "react";
-import { twMerge } from "tailwind-merge";
+import type { JSX } from "solid-js";
+import { cn } from "@/lib/utils";
 
-export function Text({ className, ...props }: ComponentProps<"p">) {
-  return (
-    <p
-      data-slot="text"
-      {...props}
-      className={twMerge("text-base/6 text-muted-fg sm:text-sm/6", className)}
-    />
-  );
+export function Text(props: JSX.HTMLAttributes<HTMLParagraphElement>) {
+  return <p {...props} class={cn("text-sm text-fg", props.class)} />;
 }

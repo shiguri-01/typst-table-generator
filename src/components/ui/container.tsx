@@ -1,25 +1,11 @@
-import { twMerge } from "tailwind-merge";
+import type { JSX } from "solid-js";
+import { cn } from "@/lib/utils";
 
-interface ContainerProps extends React.ComponentProps<"div"> {
-  constrained?: boolean;
+export function Container(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      {...props}
+      class={cn("mx-auto w-full max-w-7xl px-4 sm:px-6", props.class)}
+    />
+  );
 }
-
-const Container = ({
-  className,
-  constrained = false,
-  ref,
-  ...props
-}: ContainerProps) => (
-  <div
-    className={twMerge(
-      "mx-auto w-full max-w-7xl [--container-padding:--spacing(4)] xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl)",
-      constrained ? "sm:px-(--container-padding)" : "px-(--container-padding)",
-      className,
-    )}
-    {...props}
-    ref={ref}
-  />
-);
-
-export type { ContainerProps };
-export { Container };

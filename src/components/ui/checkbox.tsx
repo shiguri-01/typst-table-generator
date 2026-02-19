@@ -1,95 +1,38 @@
-import { IconCheck, IconMinus } from "@tabler/icons-react";
-import type { CheckboxGroupProps, CheckboxProps } from "react-aria-components";
-import {
-  CheckboxGroup as CheckboxGroupPrimitive,
-  Checkbox as CheckboxPrimitive,
-  composeRenderProps,
-} from "react-aria-components";
-import { twMerge } from "tailwind-merge";
-import { cx } from "@/lib/primitive";
-import { Label } from "./field";
+import * as CheckboxPrimitive from "@kobalte/core/checkbox";
+import { IconCheck } from "@tabler/icons-solidjs";
+import type { ComponentProps, JSX } from "solid-js";
+import { Show, splitProps } from "solid-js";
+import { cn } from "@/lib/utils";
 
-export function CheckboxGroup({ className, ...props }: CheckboxGroupProps) {
-  return (
-    <CheckboxGroupPrimitive
-      {...props}
-      data-slot="control"
-      className={cx(
-        "space-y-3 has-[[slot=description]]:space-y-6 has-[[slot=description]]:**:data-[slot=label]:font-medium **:[[slot=description]]:block",
-        className,
-      )}
-    />
-  );
+type CheckboxBaseProps = Omit<
+  ComponentProps<typeof CheckboxPrimitive.Root>,
+  "class"
+>;
+
+interface CheckboxProps extends CheckboxBaseProps {
+  class?: string;
+  children?: JSX.Element;
 }
 
-export function Checkbox({ className, children, ...props }: CheckboxProps) {
+export function Checkbox(props: CheckboxProps) {
+  const [local, rest] = splitProps(props, ["class", "children"]);
+
   return (
-    <CheckboxPrimitive
-      data-slot="control"
-      className={cx(
-        "group block [--indicator-mt:--spacing(0.75)] disabled:opacity-50 sm:[--indicator-mt:--spacing(1)]",
-        className,
-      )}
-      {...props}
+    <CheckboxPrimitive.Root
+      {...rest}
+      class={cn("flex items-start gap-2 text-sm text-fg", local.class)}
     >
-      {composeRenderProps(
-        children,
-        (
-          children,
-          { isSelected, isIndeterminate, isFocusVisible, isInvalid },
-        ) => {
-          const isStringChild = typeof children === "string";
-          const indicator = isIndeterminate ? (
-            <IconMinus data-slot="check-indicator" />
-          ) : isSelected ? (
-            <IconCheck data-slot="check-indicator" />
-          ) : null;
-
-          const content = isStringChild ? (
-            <CheckboxLabel>{children}</CheckboxLabel>
-          ) : (
-            children
-          );
-
-          return (
-            <div
-              className={twMerge(
-                "grid grid-cols-[1.125rem_1fr] gap-x-3 gap-y-1 sm:grid-cols-[1rem_1fr]",
-                "*:data-[slot=indicator]:col-start-1 *:data-[slot=indicator]:row-start-1 *:data-[slot=indicator]:mt-(--indicator-mt)",
-                "*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1",
-                "*:[[slot=description]]:col-start-2 *:[[slot=description]]:row-start-2",
-                "has-[[slot=description]]:**:data-[slot=label]:font-medium",
-              )}
-            >
-              <span
-                data-slot="indicator"
-                className={twMerge([
-                  "relative inset-ring inset-ring-input isolate flex shrink-0 items-center justify-center rounded text-bg transition group-hover:inset-ring-muted-fg/30",
-                  "sm:size-4 sm:*:data-[slot=check-indicator]:size-3.5",
-                  "size-4.5 *:data-[slot=check-indicator]:size-4",
-                  (isSelected || isIndeterminate) && [
-                    "inset-ring-primary bg-primary text-primary-fg",
-                    "group-invalid:inset-ring-danger-subtle-fg/70 group-invalid:bg-danger group-invalid:text-danger-subtle-fg dark:group-invalid:inset-ring-danger-subtle-fg/70",
-                  ],
-                  isFocusVisible && [
-                    "inset-ring-primary ring-3 ring-ring/20",
-                    "group-invalid:inset-ring-danger-subtle-fg/70 group-invalid:text-danger-fg group-invalid:ring-danger-subtle-fg/20",
-                  ],
-                  isInvalid &&
-                    "inset-ring-danger-subtle-fg/70 bg-danger-subtle/5 text-danger-fg ring-danger-subtle-fg/20 group-hover:inset-ring-danger-subtle-fg/70",
-                ])}
-              >
-                {indicator}
-              </span>
-              {content}
-            </div>
-          );
-        },
-      )}
-    </CheckboxPrimitive>
+      <CheckboxPrimitive.Input />
+      <CheckboxPrimitive.Control class="mt-0.5 flex h-4 w-4 items-center justify-center rounded border border-input bg-bg data-[checked]:border-primary data-[checked]:bg-primary">
+        <CheckboxPrimitive.Indicator>
+          <IconCheck class="h-3 w-3 text-primary-fg" />
+        </CheckboxPrimitive.Indicator>
+      </CheckboxPrimitive.Control>
+      <Show when={local.children}>
+        <CheckboxPrimitive.Label class="space-y-1">
+          {local.children}
+        </CheckboxPrimitive.Label>
+      </Show>
+    </CheckboxPrimitive.Root>
   );
-}
-
-export function CheckboxLabel(props: React.ComponentProps<typeof Label>) {
-  return <Label elementType="span" {...props} />;
 }
