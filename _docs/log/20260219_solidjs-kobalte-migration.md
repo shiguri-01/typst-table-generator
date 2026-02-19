@@ -36,6 +36,7 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
   - レビュー指摘対応として、グリッド patch 適用時は既存セルへマージしてから反映するよう変更し、delete/paste 時に `bold/italic/align` が消えないよう修正。
   - `Checkbox` children に `<Label>` を渡していた箇所を通常要素へ置換し、nested `<label>` の不正マークアップを解消。
   - table更新APIを分割。グリッドの `onCellsChange` は `applyTableCellPatches`（`produce`）で直接適用し、全体置換系は `replaceTable`（`reconcile`）で扱うハイブリッドへ変更。
+  - `components/ui/modal.tsx` に右上の `x` 閉じるボタンを共通追加。`@tabler/icons-solidjs` の `IconX` を利用し、`aria-label` 付きで操作可能にした。
 
 ## Summary
 

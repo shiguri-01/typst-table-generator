@@ -1,4 +1,5 @@
 import * as Dialog from "@kobalte/core/dialog";
+import { IconX } from "@tabler/icons-solidjs";
 import type { JSX } from "solid-js";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +31,17 @@ export function ModalContent(props: ModalContentProps) {
       <Dialog.Content
         class={cn(
           "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-overlay p-4 shadow-xl",
+          "relative",
           maxWidth(),
           props.class,
         )}
       >
+        <Dialog.CloseButton
+          aria-label="Close dialog"
+          class="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-fg hover:bg-muted hover:text-fg"
+        >
+          <IconX class="h-4 w-4" />
+        </Dialog.CloseButton>
         {props.children}
       </Dialog.Content>
     </Dialog.Portal>

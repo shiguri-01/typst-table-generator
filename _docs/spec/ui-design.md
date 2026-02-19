@@ -45,6 +45,7 @@
   - 最新エクスポートコード表示
   - stale 警告表示
   - copy 失敗時のエラーメッセージ表示
+  - 右上のアイコンボタン（`x`）とフッターの Close ボタンの両方で閉じられる
 
 ## UI コンポーネント方針
 
@@ -79,3 +80,5 @@
 > **Spec change (2026-02-19)** UI 基盤を SolidJS + Kobalte + `@shiguri/solid-grid` に移行。React/React Aria/react-datasheet-grid/Zustand 前提の記述を廃止し、現在の実装構成（signals store・Kobalte ラッパー・Solid Router）へ更新。
 >
 > **Spec change (2026-02-19)** グリッド編集時の確定タイミングを明確化。入力中はドラフトを保持し、`Enter` / `Blur` で反映、`Escape` でキャンセルする。
+>
+> **Spec change (2026-02-19)** モーダル共通UIに右上のアイコン閉じるボタンを追加。キーボード/ポインタ双方で閉じ動線を確保。
