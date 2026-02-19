@@ -37,6 +37,8 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
   - `Checkbox` children に `<Label>` を渡していた箇所を通常要素へ置換し、nested `<label>` の不正マークアップを解消。
   - table更新APIを分割。グリッドの `onCellsChange` は `applyTableCellPatches`（`produce`）で直接適用し、全体置換系は `replaceTable`（`reconcile`）で扱うハイブリッドへ変更。
   - `components/ui/modal.tsx` に右上の `x` 閉じるボタンを共通追加。`@tabler/icons-solidjs` の `IconX` を利用し、`aria-label` 付きで操作可能にした。
+  - 追加レビュー対応として、編集中セルから他セルクリックした際に同一クリックで選択遷移できるよう `mouse-editing` でクリック時の `cancelEdit` を先行実行。
+  - 行が 0 件の状態でも列ヘッダーを操作可能にするため、グリッド描画で仮想行を供給し、`normalizeRange` は `rows=0 && columns>0` で列範囲を保持するよう拡張。
 
 ## Summary
 

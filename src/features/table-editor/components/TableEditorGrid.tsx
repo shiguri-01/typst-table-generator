@@ -56,10 +56,15 @@ const mouseEditingPlugin = (): GridPlugin<Cell> => ({
     if (ev.type !== "cell:pointerdown") {
       return;
     }
-    if (ev.e.button !== 0 || ev.e.detail < 2) {
+    if (ev.e.button !== 0) {
       return;
     }
     if (api.isEditing()) {
+      // Let the same click continue into selection handling after ending edit mode.
+      api.cancelEdit();
+      return;
+    }
+    if (ev.e.detail < 2) {
       return;
     }
     ev.e.preventDefault();
@@ -191,13 +196,23 @@ const toGridPos = (pos: CellPosition | null) => {
   return { row: pos.row, col: pos.column };
 };
 
+const createVirtualRow = (columnCount: number): Cell[] =>
+  Array.from({ length: columnCount }, () => ({ content: "" }));
+
 export function TableEditorGrid() {
   const gridState = createMemo(() => {
     const state = tableEditorStore();
     const { selection, activeCell } = state;
+    const columnCount = state.table.columnSpecs.length;
+    const hasRows = state.table.rows.length > 0;
+    const data = hasRows
+      ? (state.table.rows as Cell[][])
+      : columnCount > 0
+        ? [createVirtualRow(columnCount)]
+        : [];
 
     return {
-      data: state.table.rows as Cell[][],
+      data,
       activeCell: toGridPos(activeCell),
       selection: selection
         ? {

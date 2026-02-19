@@ -16,6 +16,20 @@ export const normalizeRange = (
   range: CellRange,
 ): CellRange | null => {
   const { start, end } = range;
+  const { rows, columns } = dimensions(table);
+
+  if (columns <= 0) {
+    return null;
+  }
+
+  if (rows <= 0) {
+    const minColumn = clamp(Math.min(start.column, end.column), 0, columns - 1);
+    const maxColumn = clamp(Math.max(start.column, end.column), 0, columns - 1);
+    return {
+      start: { row: 0, column: minColumn },
+      end: { row: 0, column: maxColumn },
+    };
+  }
 
   // 完全に範囲外ならnullを返す
   // start, end両方が画面外であってもtableと領域が重なる場合があるが、
@@ -23,8 +37,6 @@ export const normalizeRange = (
   if (!isInBounds(table, start) && !isInBounds(table, end)) {
     return null;
   }
-
-  const { rows, columns } = dimensions(table);
 
   const clampedStart = {
     row: clamp(start.row, 0, rows - 1),
