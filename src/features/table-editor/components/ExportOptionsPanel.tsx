@@ -72,11 +72,13 @@ export function ExportOptionsPanel() {
       </CardHeader>
       <CardContent class="space-y-6">
         <Checkbox checked={escapeEnabled()} onChange={handleEscapeToggle}>
-          <Label class="font-medium">Escape symbols in cells</Label>
-          <Description>
-            Escapes <Code>#</Code>, <Code>$</Code>, <Code>[</Code>,{" "}
-            <Code>]</Code>, and <Code>@</Code> in table cells.
-          </Description>
+          <div class="space-y-1">
+            <div class="text-sm font-medium">Escape symbols in cells</div>
+            <Description>
+              Escapes <Code>#</Code>, <Code>$</Code>, <Code>[</Code>,{" "}
+              <Code>]</Code>, and <Code>@</Code> in table cells.
+            </Description>
+          </div>
         </Checkbox>
 
         <Select
@@ -93,9 +95,9 @@ export function ExportOptionsPanel() {
             checked={wrapFigureEnabled()}
             onChange={updateWrapFigureEnabled}
           >
-            <Label class="font-medium">
+            <span class="text-sm font-medium">
               Wrap in <Code>figure</Code>
-            </Label>
+            </span>
           </Checkbox>
           <div class="ml-4 space-y-3 border-l border-border pl-4">
             <TextField
