@@ -1,204 +1,225 @@
-import "react-datasheet-grid/dist/style.css";
+import "@shiguri/solid-grid/preset-tailwind.css";
 
-import { useStore } from "@tanstack/react-store";
-import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
-import { Input, TextField } from "react-aria-components";
 import {
-  type CellProps,
-  type Column,
-  DynamicDataSheetGrid,
-  keyColumn,
-} from "react-datasheet-grid";
-import type {
-  Cell as DatasheetGridCell,
-  SelectionWithId,
-} from "react-datasheet-grid/dist/types";
-import { tv } from "tailwind-variants";
+  type CellPatch,
+  type CellRenderContext,
+  clipboardTextPlugin,
+  createPluginHost,
+  deletePlugin,
+  editingPlugin,
+  Gridsheet,
+  selectionPlugin,
+} from "@shiguri/solid-grid";
+import { cva } from "class-variance-authority";
+import { createMemo } from "solid-js";
 import type { Cell } from "@/domain/typst/table/cell";
-import { type CellPosition, withCellContent } from "@/domain/typst/table/table";
+import type { CellPosition } from "@/domain/typst/table/table";
+import { cn } from "@/lib/utils";
 import {
-  cellSelector,
+  cellStrokeAt,
   selectCellRange,
   setActiveCell,
-  type TableEditorState,
   tableEditorStore,
   updateTable,
 } from "../store";
 import { createColumnTitle } from "../utils";
 
-type DatasheetGridRow = Record<string, Cell>;
-
-const cellStyle = tv({
-  base: [
-    "dsg-input", // react-datasheet-gridのデフォルトスタイル
-  ],
-  variants: {
-    alignH: {
-      left: "text-left",
-      center: "text-center",
-      right: "text-right",
+const cellTextStyles = cva(
+  "h-full min-h-7 w-full border-0 bg-transparent px-2 py-1 text-sm outline-none",
+  {
+    variants: {
+      alignH: {
+        left: "text-left",
+        center: "text-center",
+        right: "text-right",
+      },
+      alignV: {
+        top: "align-top",
+        horizon: "align-middle",
+        bottom: "align-bottom",
+      },
+      bold: {
+        true: "font-bold",
+      },
+      italic: {
+        true: "italic",
+      },
     },
-    alignV: {
-      top: "align-top",
-      horizon: "align-middle",
-      bottom: "align-bottom",
-    },
-
-    bold: {
-      true: "font-bold",
-    },
-    italic: {
-      true: "italic",
-    },
-  },
-
-  defaultVariants: {
-    alignH: undefined,
-    alignV: undefined,
-
-    bold: false,
-    italic: false,
-  },
-});
-
-const cellStrokeSelector =
-  ({ row, column }: CellPosition) =>
-  (state: TableEditorState) => {
-    const { strokes } = state.table;
-    return {
-      top: strokes.row[row] ?? false,
-      bottom: strokes.row[row + 1] ?? false,
-      left: strokes.column[column] ?? false,
-      right: strokes.column[column + 1] ?? false,
-    };
-  };
-
-// react-datasheet-gridのtextColumnを参考に作成
-// https://github.com/nick-keller/react-datasheet-grid/blob/master/src/columns/textColumn.tsx
-const TableEditorGridCell = memo(
-  ({ rowIndex, columnIndex, focus }: CellProps<DatasheetGridRow>) => {
-    const ref = useRef<HTMLInputElement>(null);
-    const cell = useStore(
-      tableEditorStore,
-      cellSelector({ row: rowIndex, column: columnIndex }),
-    );
-    const stroke = useStore(
-      tableEditorStore,
-      cellStrokeSelector({ row: rowIndex, column: columnIndex }),
-    );
-
-    useLayoutEffect(() => {
-      const input = ref.current;
-      if (!input) {
-        return;
-      }
-
-      if (focus) {
-        input.focus();
-        input.select();
-      } else {
-        input.blur();
-      }
-    }, [focus]);
-
-    if (!cell) {
-      return <div>OUT OF BOUNDS</div>;
-    }
-
-    const setContent = (newContent: string) => {
-      updateTable((t) =>
-        withCellContent(t, { row: rowIndex, column: columnIndex }, newContent),
-      );
-    };
-
-    return (
-      <TextField
-        value={cell.content}
-        onChange={setContent}
-        data-border-top={stroke.top || undefined}
-        data-border-bottom={stroke.bottom || undefined}
-        data-border-left={stroke.left || undefined}
-        data-border-right={stroke.right || undefined}
-        aria-label="cell input"
-      >
-        <Input
-          ref={ref}
-          // Cell単位でフォーカスを移動したいため、Inputがtabでフォーカスされることを防ぐ
-          tabIndex={-1}
-          className={cellStyle({
-            alignH: cell.align?.horizontal,
-            alignV: cell.align?.vertical,
-            bold: cell.bold,
-            italic: cell.italic,
-          })}
-          style={{ pointerEvents: focus ? "auto" : "none" }}
-        />
-      </TextField>
-    );
   },
 );
 
-const gridColumn = (): Column<DatasheetGridRow> => ({
-  component: TableEditorGridCell,
-});
+const pluginHost = createPluginHost<Cell>([
+  selectionPlugin(),
+  editingPlugin(),
+  deletePlugin({
+    getEmptyValue: () => ({ content: "" }),
+  }),
+  clipboardTextPlugin({
+    getData: () => tableEditorStore().table.rows as Cell[][],
+    parseCell: (raw) => ({ content: raw }),
+    formatCell: (value) => value.content,
+    getEmptyValue: () => ({ content: "" }),
+  }),
+]);
 
-const tableDataSelector = (state: TableEditorState): DatasheetGridRow[] =>
-  state.table.rows.map((row) =>
-    Object.fromEntries(row.map((cell, colIdx) => [`col-${colIdx}`, cell])),
-  );
+const applyGridPatches = (
+  table: ReturnType<typeof tableEditorStore>["table"],
+  patches: CellPatch<Cell>[],
+) => {
+  const nextRows = table.rows.map((row) => row.slice());
+  for (const { pos, value } of patches) {
+    if (!nextRows[pos.row]?.[pos.col]) {
+      continue;
+    }
+    nextRows[pos.row][pos.col] = value;
+  }
 
-// TODO: 列の追加、消去でkeyが保持されるようにする
-const columnKeysSelector = (state: TableEditorState): string[] =>
-  state.table.columnSpecs.map((_, colIdx) => `col-${colIdx}`);
+  return {
+    ...table,
+    rows: nextRows,
+  };
+};
 
-export const TableEditorGrid = () => {
-  const data = useStore(tableEditorStore, tableDataSelector);
-  const columnKeys = useStore(tableEditorStore, columnKeysSelector);
-  const columns = useMemo(
-    () =>
-      columnKeys.map((colKey, colIdx) => ({
-        ...keyColumn(colKey, gridColumn()),
-        title: createColumnTitle(colIdx),
-      })),
-    [columnKeys],
-  );
+const renderCell = (ctx: CellRenderContext<Cell>) => {
+  const state = tableEditorStore();
+  const stroke = cellStrokeAt(state, { row: ctx.row, column: ctx.col });
+  const styleClass = cellTextStyles({
+    alignH: ctx.value.align?.horizontal,
+    alignV: ctx.value.align?.vertical,
+    bold: ctx.value.bold,
+    italic: ctx.value.italic,
+  });
 
-  const handleActiveCellChange = useCallback(
-    ({ cell }: { cell: DatasheetGridCell | null }) => {
-      if (!cell) return;
-
-      const { row, col } = cell;
-      setActiveCell({ row, column: col });
-    },
-    [],
-  );
-
-  const handleSelectionChange = useCallback(
-    ({ selection }: { selection: SelectionWithId | null }) => {
-      if (!selection) return;
-
-      const { min, max } = selection;
-      selectCellRange({
-        start: { row: min.row, column: min.col },
-        end: { row: max.row, column: max.col },
-      });
-    },
-    [],
-  );
+  if (ctx.isEditing) {
+    return (
+      <input
+        value={ctx.value.content}
+        class={cn(styleClass, "bg-bg")}
+        aria-label="cell input"
+        onInput={(event) => {
+          ctx.commitEdit({
+            ...ctx.value,
+            content: event.currentTarget.value,
+          });
+        }}
+        onBlur={() => {
+          ctx.cancelEditing();
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            ctx.cancelEditing();
+          }
+        }}
+      />
+    );
+  }
 
   return (
-    <DynamicDataSheetGrid
-      value={data}
-      columns={columns}
-      cellClassName={[
-        "has-[[data-border-top]]:!border-t has-[[data-border-top]]:!border-t-fg",
-        "has-[[data-border-bottom]]:!border-b has-[[data-border-bottom]]:!border-b-fg",
-        "has-[[data-border-left]]:!border-l has-[[data-border-left]]:!border-l-fg",
-        "has-[[data-border-right]]:!border-r has-[[data-border-right]]:!border-r-fg",
-      ].join(" ")}
-      addRowsComponent={false} // ツールバーUIで行追加するので不要
-      onActiveCellChange={handleActiveCellChange}
-      onSelectionChange={handleSelectionChange}
-    />
+    <div
+      class={cn(
+        styleClass,
+        "grid h-full items-center",
+        ctx.isSelected && "bg-primary-subtle",
+        stroke.top && "border-t border-t-fg",
+        stroke.bottom && "border-b border-b-fg",
+        stroke.left && "border-l border-l-fg",
+        stroke.right && "border-r border-r-fg",
+      )}
+    >
+      {ctx.value.content}
+    </div>
   );
 };
+
+const toGridPos = (pos: CellPosition | null) => {
+  if (!pos) {
+    return null;
+  }
+  return { row: pos.row, col: pos.column };
+};
+
+export function TableEditorGrid() {
+  const gridState = createMemo(() => {
+    const state = tableEditorStore();
+    const { selection, activeCell } = state;
+
+    return {
+      data: state.table.rows as Cell[][],
+      activeCell: toGridPos(activeCell),
+      selection: selection
+        ? {
+            min: {
+              row: selection.start.row,
+              col: selection.start.column,
+            },
+            max: {
+              row: selection.end.row,
+              col: selection.end.column,
+            },
+          }
+        : null,
+    };
+  });
+
+  return (
+    <div class="overflow-auto rounded-md border border-border bg-bg">
+      <Gridsheet
+        data={gridState().data}
+        renderCell={renderCell}
+        activeCell={gridState().activeCell}
+        selection={gridState().selection}
+        onActiveCellChange={(pos) => {
+          if (!pos) {
+            return;
+          }
+          setActiveCell({ row: pos.row, column: pos.col });
+        }}
+        onSelectionChange={(range) => {
+          if (!range) {
+            return;
+          }
+          selectCellRange({
+            start: { row: range.min.row, column: range.min.col },
+            end: { row: range.max.row, column: range.max.col },
+          });
+        }}
+        onCellsChange={(patches) => {
+          updateTable((table) => applyGridPatches(table, patches));
+        }}
+        onEvent={pluginHost.onEvent}
+        renderColHeader={({ index }) => (
+          <div class="px-2 py-1 text-center text-xs font-semibold text-muted-fg">
+            {createColumnTitle(index)}
+          </div>
+        )}
+        renderRowHeader={({ index }) => (
+          <div class="px-2 py-1 text-center text-xs font-semibold text-muted-fg">
+            {index + 1}
+          </div>
+        )}
+        class="w-full"
+        classes={{
+          header: "bg-muted",
+          corner: "border-b border-r border-border bg-muted",
+          rowHeader: ({ isSelected }) =>
+            cn(
+              "border-b border-r border-border bg-muted",
+              isSelected && "bg-primary-subtle",
+            ),
+          colHeader: ({ isSelected }) =>
+            cn(
+              "border-b border-r border-border bg-muted",
+              isSelected && "bg-primary-subtle",
+            ),
+          row: () => "border-b border-border",
+          cell: (cellCtx) =>
+            cn(
+              "border-r border-border align-top",
+              cellCtx.isActive && "ring-2 ring-primary/60 ring-inset",
+            ),
+        }}
+      />
+    </div>
+  );
+}

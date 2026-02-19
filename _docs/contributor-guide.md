@@ -4,11 +4,12 @@
 
 - Language/Runtime: TypeScript; Node 22+.
 - Package Manager: pnpm.
-- Build/Dev: Vite 7, `@vitejs/plugin-react`, `vite-tsconfig-paths`.
-- Framework/Routing: React 19, TanStack Router (+ plugin, React Start, SSR query utils).
-- Styling/UI: Intent UI components with Tailwind CSS v4, `tailwind-merge`, `tailwindcss-react-aria-components` (built on React ARIA). Follow React ARIA patterns and a11y conventions.
-- Icons: `lucide-react`, `@tabler/icons-react`.
-- Testing: Vitest 3 + Testing Library (`@testing-library/react`, `jsdom`).
+- Build/Dev: Vite 7, `vite-plugin-solid`, `vite-tsconfig-paths`.
+- Framework/Routing: SolidJS 1.9, `@tanstack/solid-router`.
+- Styling/UI: Tailwind CSS v4, `class-variance-authority`, `clsx`, `tailwind-merge`, Kobalte UI primitives.
+- Grid: `@shiguri/solid-grid` (`0.1.2` fixed).
+- Icons: `@tabler/icons-solidjs`.
+- Testing: Vitest 3 + Solid Testing Library (`@solidjs/testing-library`, `jsdom`).
 - Lint/Format: Biome 2.2 via Lefthook (staged-only).
 
 ## Project Structure
@@ -25,10 +26,10 @@
 
 ## Coding Style & Naming
 
-- TypeScript, 2-space indentation. Prefer functional React components.
+- TypeScript, 2-space indentation. Prefer functional Solid components.
 - Filenames: routes lowercase with dashes or `index.tsx`; co-located components may use PascalCase.
 - Exports: components `PascalCase`; functions/vars `camelCase`.
-- UI: Follow Intent UI + React ARIA idioms (roles/labels, keyboard interactions, focus management).
+- UI: Build app-specific wrappers under `src/components/ui` using Kobalte primitives and `cva` variants.
 
 ## Testing Guidelines
 
@@ -67,5 +68,9 @@
 
 ## References
 
-- [Intent UI guidance for LLMs and component usage](https://intentui.com/llms.txt)
-- Explore other docs by using Context7 MCP Server.
+- [Kobalte Documentation](https://kobalte.dev/docs/core/overview/introduction/)
+- [solid-grid repository](https://github.com/shiguri-01/solid-grid)
+
+## Spec changes
+
+> **Spec change (2026-02-19)** React/React ARIA/Intent UI 前提を削除し、SolidJS + Kobalte + `@shiguri/solid-grid` 前提へ更新。

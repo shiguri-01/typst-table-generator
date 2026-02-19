@@ -1,6 +1,6 @@
 # typst-table-generator: 仕様ドキュメント
 
-最終更新: 2025-10-28 / バージョン: 0.1-draft
+最終更新: 2026-02-19 / バージョン: 0.1-draft
 
 ## 📋 必読セクション
 
@@ -31,9 +31,9 @@
 @_docs/spec/ui-design.md - UI/UX 仕様とレイアウト
 
 - ルート構成とレイアウト
-- react-datasheet-grid の統合
+- `@shiguri/solid-grid` の統合
 - ツールバー、プロパティパネル
-- Zustand による状態管理
+- Solid signals による状態管理
 - モーダルと通知
 
 **UI を変更する場合はこのファイルを参照してください。**
@@ -85,3 +85,7 @@
 - 出力規約・生成手順: @_docs/spec/io-spec.md（「Typst 出力方針」「生成アルゴリズム」）
 - 罫線（Stroke）定義: @_docs/spec/data-model.md（「Stroke の扱い」）
 - 直近の変更履歴: @_docs/spec/io-spec.md と @_docs/spec/data-model.md の末尾「Spec changes」
+
+## Spec changes
+
+> **Spec change (2026-02-19)** UI 設計の主要技術スタック表記を SolidJS + Kobalte + `@shiguri/solid-grid` 前提へ更新。

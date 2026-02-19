@@ -5,9 +5,8 @@ import {
   IconDownload,
   IconFileExport,
   IconRefresh,
-} from "@tabler/icons-react";
-import { useStore } from "@tanstack/react-store";
-import { useEffect, useRef, useState } from "react";
+} from "@tabler/icons-solidjs";
+import { createMemo, createSignal, onCleanup } from "solid-js";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import {
@@ -22,58 +21,40 @@ import {
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import { generateTypstCode } from "../export";
-import { tableRenderingOptionsSelector, tableSelector } from "../selectors";
 import {
-  exportStateSelector,
   setCopyError,
   setExportModal,
   tableEditorStore,
   updateExportedCode,
-  wrapFigureEnabledSelector,
-  wrapFigureOptionsSelector,
 } from "../store";
 import { copyToClipboard } from "../utils";
 
 export function ExportModal() {
-  const exportState = useStore(tableEditorStore, exportStateSelector);
-  const { showExportModal, lastExportedCode, isStale, copyError } = exportState;
-  const table = useStore(tableEditorStore, tableSelector);
-  const tableRenderingOptions = useStore(
-    tableEditorStore,
-    tableRenderingOptionsSelector,
-  );
-  const wrapFigureEnabled = useStore(
-    tableEditorStore,
-    wrapFigureEnabledSelector,
-  );
-  const wrapFigureOptions = useStore(
-    tableEditorStore,
-    wrapFigureOptionsSelector,
-  );
-  const [copied, setCopied] = useState(false);
-  const copyResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exportState = createMemo(() => tableEditorStore().export);
+  const [copied, setCopied] = createSignal(false);
 
-  useEffect(() => {
-    return () => {
-      if (copyResetTimeout.current !== null) {
-        clearTimeout(copyResetTimeout.current);
-        copyResetTimeout.current = null;
-      }
-    };
-  }, []);
+  let copyResetTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  onCleanup(() => {
+    if (copyResetTimeout !== null) {
+      clearTimeout(copyResetTimeout);
+      copyResetTimeout = null;
+    }
+  });
 
   const handleExport = () => {
+    const state = tableEditorStore();
     const code = generateTypstCode(
-      table,
-      tableRenderingOptions,
-      wrapFigureEnabled,
-      wrapFigureOptions,
+      state.table,
+      state.tableRenderingOptions,
+      state.wrapFigure.enabled,
+      state.wrapFigure.figureOptions,
     );
-
     updateExportedCode(code);
   };
 
   const handleCopy = async () => {
+    const lastExportedCode = exportState().lastExportedCode;
     if (!lastExportedCode) return;
 
     setCopyError(false);
@@ -81,12 +62,12 @@ export function ExportModal() {
 
     if (success) {
       setCopied(true);
-      if (copyResetTimeout.current !== null) {
-        clearTimeout(copyResetTimeout.current);
+      if (copyResetTimeout !== null) {
+        clearTimeout(copyResetTimeout);
       }
-      copyResetTimeout.current = setTimeout(() => {
+      copyResetTimeout = setTimeout(() => {
         setCopied(false);
-        copyResetTimeout.current = null;
+        copyResetTimeout = null;
       }, 3000);
     } else {
       setCopyError(true);
@@ -94,33 +75,34 @@ export function ExportModal() {
   };
 
   const handleDownload = () => {
+    const lastExportedCode = exportState().lastExportedCode;
     if (!lastExportedCode) return;
 
     const blob = new Blob([lastExportedCode], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "table.typ";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "table.typ";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
   };
 
   return (
-    <Modal isOpen={showExportModal} onOpenChange={setExportModal}>
-      <ModalContent size="4xl" className="@container/modal">
+    <Modal open={exportState().showExportModal} onOpenChange={setExportModal}>
+      <ModalContent size="4xl" class="@container/modal">
         <ModalHeader>
           <ModalTitle>Exported</ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="space-y-4">
-          {isStale && <CodeStale handleExport={handleExport} />}
-          {copyError && <CopyError />}
+        <ModalBody class="space-y-4">
+          {exportState().isStale && <CodeStale handleExport={handleExport} />}
+          {exportState().copyError && <CopyError />}
 
-          {lastExportedCode ? (
-            <CodeBlock language="typst" className="max-h-96">
-              {lastExportedCode}
+          {exportState().lastExportedCode ? (
+            <CodeBlock language="typst" class="max-h-96">
+              {exportState().lastExportedCode}
             </CodeBlock>
           ) : (
             <NoExportedCode handleExport={handleExport} />
@@ -130,32 +112,33 @@ export function ExportModal() {
         <ModalFooter>
           <ModalClose>Close</ModalClose>
           <div
-            className={cn(
+            class={cn(
               "grid gap-2",
               "[grid-template-areas:'copy''download']",
               "@md/modal:grid-cols-2 @md/modal:[grid-template-areas:'download_copy']",
             )}
           >
             <Button
-              intent="primary"
-              onPress={handleCopy}
-              isDisabled={!lastExportedCode}
-              className="[grid-area:copy]"
+              onClick={() => {
+                void handleCopy();
+              }}
+              disabled={!exportState().lastExportedCode}
+              class="[grid-area:copy]"
             >
-              {copied ? (
-                <IconCheck data-slot="icon" aria-hidden />
+              {copied() ? (
+                <IconCheck class="h-4 w-4" aria-hidden />
               ) : (
-                <IconCopy data-slot="icon" aria-hidden />
+                <IconCopy class="h-4 w-4" aria-hidden />
               )}
-              {copied ? "Copied!" : "Copy Code"}
+              {copied() ? "Copied!" : "Copy Code"}
             </Button>
             <Button
               intent="outline"
-              onPress={handleDownload}
-              isDisabled={!lastExportedCode}
-              className="[grid-area:download]"
+              onClick={handleDownload}
+              disabled={!exportState().lastExportedCode}
+              class="[grid-area:download]"
             >
-              <IconDownload data-slot="icon" aria-hidden />
+              <IconDownload class="h-4 w-4" aria-hidden />
               Download .typ
             </Button>
           </div>
@@ -165,32 +148,32 @@ export function ExportModal() {
   );
 }
 
-function NoExportedCode({ handleExport }: { handleExport: () => void }) {
+function NoExportedCode(props: { handleExport: () => void }) {
   return (
-    <div className="grid gap-4 place-items-center bg-muted p-6 pt-8 rounded-md">
+    <div class="grid place-items-center gap-4 rounded-md bg-muted p-6 pt-8">
       <Text>No code has been exported yet.</Text>
-      <Button onPress={handleExport} intent="outline" size="sm">
-        <IconFileExport data-slot="icon" aria-hidden />
+      <Button onClick={props.handleExport} intent="outline" size="sm">
+        <IconFileExport class="h-4 w-4" aria-hidden />
         Export now
       </Button>
     </div>
   );
 }
 
-function CodeStale({ handleExport }: { handleExport: () => void }) {
+function CodeStale(props: { handleExport: () => void }) {
   return (
-    <div className="grid gap-3 items-center p-4 bg-warning/10 rounded-md @md:grid-cols-[1fr_auto]">
-      <div className="grid grid-cols-[auto_1fr] gap-3">
-        <IconAlertTriangle className="mt-0.5 size-5 text-warning" />
+    <div class="grid items-center gap-3 rounded-md bg-warning/10 p-4 @md:grid-cols-[1fr_auto]">
+      <div class="grid grid-cols-[auto_1fr] gap-3">
+        <IconAlertTriangle class="mt-0.5 h-5 w-5 text-warning" />
         <div>
-          <Text className="font-medium text-fg">Table has been modified</Text>
-          <Text className="text-muted-fg">
+          <Text class="font-medium text-fg">Table has been modified</Text>
+          <Text class="text-muted-fg">
             The displayed code may not reflect the latest changes.
           </Text>
         </div>
       </div>
-      <Button onPress={handleExport} size="sm" intent="outline">
-        <IconRefresh data-slot="icon" aria-hidden className="size-4" />
+      <Button onClick={props.handleExport} size="sm" intent="outline">
+        <IconRefresh class="h-4 w-4" aria-hidden />
         Re-export
       </Button>
     </div>
@@ -199,14 +182,12 @@ function CodeStale({ handleExport }: { handleExport: () => void }) {
 
 function CopyError() {
   return (
-    <div className="grid gap-3 items-center p-4 bg-danger/10 rounded-md">
-      <div className="grid grid-cols-[auto_1fr] gap-3">
-        <IconAlertTriangle className="mt-0.5 size-5 text-danger" />
+    <div class="grid gap-3 rounded-md bg-danger/10 p-4">
+      <div class="grid grid-cols-[auto_1fr] gap-3">
+        <IconAlertTriangle class="mt-0.5 h-5 w-5 text-danger" />
         <div>
-          <Text className="font-medium text-fg">
-            Failed to copy to clipboard
-          </Text>
-          <Text className="text-muted-fg">
+          <Text class="font-medium text-fg">Failed to copy to clipboard</Text>
+          <Text class="text-muted-fg">
             Your browser may not support clipboard operations or permission was
             denied. Please manually select and copy the code above.
           </Text>

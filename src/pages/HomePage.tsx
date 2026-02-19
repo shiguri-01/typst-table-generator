@@ -1,27 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { ExportButton } from "@/features/table-editor/components/ExportButton";
 import { ExportModal } from "@/features/table-editor/components/ExportModal";
 import { ExportOptionsPanel } from "@/features/table-editor/components/ExportOptionsPanel";
 import { GridToolBar } from "@/features/table-editor/components/GridToolBar";
 import { TableEditorGrid } from "@/features/table-editor/components/TableEditorGrid";
 
-export const Route = createFileRoute("/")({ component: App });
-
-function App() {
+export function HomePage() {
   return (
     <>
-      <div>
-        <h1>top page</h1>
-        <div className="grid grid-cols-[1fr_auto]">
-          <div>
-            <GridToolBar />
-            <TableEditorGrid />
-          </div>
-          <div>
-            <ExportOptionsPanel />
-            <ExportButton />
-          </div>
-        </div>
+      <h1 class="mb-4 text-xl font-semibold">Typst Table Generator</h1>
+      <div class="grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <section class="space-y-3">
+          <GridToolBar />
+          <TableEditorGrid />
+        </section>
+        <aside class="space-y-3">
+          <ExportOptionsPanel />
+          <ExportButton />
+        </aside>
       </div>
       <ExportModal />
     </>
