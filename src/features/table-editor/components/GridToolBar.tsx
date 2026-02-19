@@ -93,12 +93,14 @@ const calcSelectionSummary = (): SelectionFormattingSummary => {
   let boldAny = false;
   let italicAll = true;
   let italicAny = false;
+  let visitedCount = 0;
 
   for (const pos of positions) {
     const cell = table.rows[pos.row]?.[pos.column];
     if (!cell) {
       continue;
     }
+    visitedCount += 1;
 
     const cellHorizontal = cell.align?.horizontal ?? null;
     if (firstHorizontal) {
@@ -125,8 +127,16 @@ const calcSelectionSummary = (): SelectionFormattingSummary => {
     italicAll = italicAll && cellItalic;
   }
 
-  const bold: TriState = boldAll ? "all" : boldAny ? "mixed" : "none";
-  const italic: TriState = italicAll ? "all" : italicAny ? "mixed" : "none";
+  const bold: TriState =
+    visitedCount === 0 ? "none" : boldAll ? "all" : boldAny ? "mixed" : "none";
+  const italic: TriState =
+    visitedCount === 0
+      ? "none"
+      : italicAll
+        ? "all"
+        : italicAny
+          ? "mixed"
+          : "none";
 
   return {
     selection,
