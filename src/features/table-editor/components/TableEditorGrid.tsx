@@ -7,6 +7,9 @@ import {
   createPluginHost,
   deletePlugin,
   editingPlugin,
+  type GridApi,
+  type GridEvent,
+  type GridPlugin,
   Gridsheet,
   selectionPlugin,
 } from "@shiguri/solid-grid";
@@ -48,7 +51,26 @@ const cellTextStyles = cva(
   },
 );
 
+const mouseEditingPlugin = (): GridPlugin<Cell> => ({
+  name: "mouse-editing",
+  onEvent(ev: GridEvent, api: GridApi<Cell>) {
+    if (ev.type !== "cell:pointerdown") {
+      return;
+    }
+    if (api.isEditing()) {
+      return true;
+    }
+    if (ev.e.button !== 0 || ev.e.detail < 2) {
+      return;
+    }
+    ev.e.preventDefault();
+    api.beginEdit(ev.pos);
+    return true;
+  },
+});
+
 const pluginHost = createPluginHost<Cell>([
+  mouseEditingPlugin(),
   selectionPlugin(),
   editingPlugin(),
   deletePlugin({
@@ -129,6 +151,8 @@ const CellEditor = (props: CellEditorProps) => {
         commit();
       }}
       onKeyDown={(event) => {
+        event.stopPropagation();
+
         if (event.key === "Escape") {
           event.preventDefault();
           cancel();

@@ -28,6 +28,8 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
   - サンドボックス制限で `pnpm test` / `pnpm build` が `spawn EPERM`。昇格実行で解消。
   - Kobalte `Select` 型の取り回しで object value が必要。`itemComponent` 方式に修正して型エラー解消。
   - `TableEditorGrid` で `onInput` ごとに `commitEdit` していたため、入力が即終了して Enter 編集も不安定。セル editor でドラフト保持し、`Enter` / `Blur` commit・`Escape` cancel に修正。
+  - 上記修正後、`Enter` の keydown がグリッドへ伝播して再編集される不具合が判明。input 側で `event.stopPropagation()` を追加して解消。
+  - マウス操作で編集開始しづらい問題に対し、`cell:pointerdown` の `detail >= 2`（ダブルクリック相当）で編集開始するプラグインを追加して安定化。
 
 ## Summary
 
