@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
 import type {
   Align,
   HorizontalAlign,
@@ -69,12 +69,16 @@ const initialState: TableEditorState = {
 };
 
 const [tableEditorState, setTableEditorState] =
-  createSignal<TableEditorState>(initialState);
+  createStore<TableEditorState>(initialState);
 
-export const tableEditorStore = tableEditorState;
+export const tableEditorStore = () => tableEditorState;
 
 const applyState = (updater: (state: TableEditorState) => TableEditorState) => {
-  setTableEditorState((prev) => updater(prev));
+  const next = updater(tableEditorState);
+  if (next === tableEditorState) {
+    return;
+  }
+  setTableEditorState(reconcile(next));
 };
 
 export const cellSelector = (
@@ -86,6 +90,9 @@ const markExportAsStale =
   (updater: (state: TableEditorState) => TableEditorState) =>
   (state: TableEditorState): TableEditorState => {
     const newState = updater(state);
+    if (newState === state) {
+      return state;
+    }
     return {
       ...newState,
       export: {

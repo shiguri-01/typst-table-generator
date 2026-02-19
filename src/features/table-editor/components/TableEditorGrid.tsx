@@ -57,10 +57,10 @@ const mouseEditingPlugin = (): GridPlugin<Cell> => ({
     if (ev.type !== "cell:pointerdown") {
       return;
     }
-    if (api.isEditing()) {
-      return true;
-    }
     if (ev.e.button !== 0 || ev.e.detail < 2) {
+      return;
+    }
+    if (api.isEditing()) {
       return;
     }
     ev.e.preventDefault();
@@ -84,16 +84,52 @@ const pluginHost = createPluginHost<Cell>([
   }),
 ]);
 
+const areCellsEqual = (a: Cell, b: Cell): boolean => {
+  const aAlignH = a.align?.horizontal;
+  const aAlignV = a.align?.vertical;
+  const bAlignH = b.align?.horizontal;
+  const bAlignV = b.align?.vertical;
+
+  return (
+    a.content === b.content &&
+    a.bold === b.bold &&
+    a.italic === b.italic &&
+    aAlignH === bAlignH &&
+    aAlignV === bAlignV
+  );
+};
+
 const applyGridPatches = (
   table: ReturnType<typeof tableEditorStore>["table"],
   patches: CellPatch<Cell>[],
 ) => {
-  const nextRows = table.rows.map((row) => row.slice());
+  const nextRows = table.rows.slice();
+  const clonedRows = new Map<number, Cell[]>();
+  let hasChanges = false;
+
   for (const { pos, value } of patches) {
-    if (!nextRows[pos.row]?.[pos.col]) {
+    const currentRow = table.rows[pos.row];
+    const currentCell = currentRow?.[pos.col];
+    if (!currentCell) {
       continue;
     }
-    nextRows[pos.row][pos.col] = value;
+
+    if (areCellsEqual(currentCell, value)) {
+      continue;
+    }
+
+    let rowDraft = clonedRows.get(pos.row);
+    if (!rowDraft) {
+      rowDraft = currentRow.slice();
+      clonedRows.set(pos.row, rowDraft);
+      nextRows[pos.row] = rowDraft;
+    }
+    rowDraft[pos.col] = value;
+    hasChanges = true;
+  }
+
+  if (!hasChanges) {
+    return table;
   }
 
   return {
@@ -117,6 +153,10 @@ const CellEditor = (props: CellEditorProps) => {
       return;
     }
     closed = true;
+    if (draft() === props.ctx.value.content) {
+      props.ctx.cancelEditing();
+      return;
+    }
     props.ctx.commitEdit({
       ...props.ctx.value,
       content: draft(),

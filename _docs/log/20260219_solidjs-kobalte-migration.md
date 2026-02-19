@@ -30,6 +30,9 @@ UI 基盤を `cva` と `cn` に統一し、既存の表編集と Typst 出力機
   - `TableEditorGrid` で `onInput` ごとに `commitEdit` していたため、入力が即終了して Enter 編集も不安定。セル editor でドラフト保持し、`Enter` / `Blur` commit・`Escape` cancel に修正。
   - 上記修正後、`Enter` の keydown がグリッドへ伝播して再編集される不具合が判明。input 側で `event.stopPropagation()` を追加して解消。
   - マウス操作で編集開始しづらい問題に対し、`cell:pointerdown` の `detail >= 2`（ダブルクリック相当）で編集開始するプラグインを追加して安定化。
+  - レビュー指摘対応として、編集中クリックを `mouse-editing` プラグインが奪わないよう修正。あわせて no-op 編集時は `commitEdit` せず `cancelEditing` に分岐し、export の不要な stale 化を防止。
+  - 追加で更新粒度を改善。`applyGridPatches` は変更セルを含む行のみ clone し、変更なし patch は table 参照を維持。`markExportAsStale` も no-op state 更新時はそのまま返すよう修正。
+  - `tableEditorStore` の実装を `createSignal` から `createStore + reconcile` へ移行。公開API（`tableEditorStore()` / action群）は維持しつつ、差分反映時の更新粒度を改善。
 
 ## Summary
 
